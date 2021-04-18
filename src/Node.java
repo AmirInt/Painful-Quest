@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class Node {
@@ -64,6 +65,45 @@ public class Node {
 
     public int getExpense() {
         return expense;
+    }
+
+    public Node getEast() {
+        return east;
+    }
+
+    public Node getWest() {
+        return west;
+    }
+
+    public Node getNorth() {
+        return north;
+    }
+
+    public Node getSouth() {
+        return south;
+    }
+
+    public Node getOppositeOf(Node node) {
+        if (node.equals(east))
+            return west;
+        if (node.equals(north))
+            return south;
+        if (node.equals(west))
+            return east;
+        return north;
+    }
+
+    public ArrayList<Node> getNeighbours() {
+        ArrayList<Node> neighbours = new ArrayList<>();
+        if (east != null)
+            neighbours.add(east);
+        if (east != null)
+            neighbours.add(north);
+        if (east != null)
+            neighbours.add(west);
+        if (east != null)
+            neighbours.add(south);
+        return neighbours;
     }
 
     public String relativeDirectionOf(Node node) {
