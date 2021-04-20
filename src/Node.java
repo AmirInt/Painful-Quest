@@ -97,11 +97,11 @@ public class Node {
         ArrayList<Node> neighbours = new ArrayList<>();
         if (east != null)
             neighbours.add(east);
-        if (east != null)
+        if (north != null)
             neighbours.add(north);
-        if (east != null)
+        if (west != null)
             neighbours.add(west);
-        if (east != null)
+        if (south != null)
             neighbours.add(south);
         return neighbours;
     }
