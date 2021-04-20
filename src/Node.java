@@ -17,6 +17,7 @@ public class Node {
         xCoordinate = x;
         yCoordinate = y;
         expense = 0;
+        ancestor = null;
         east = null;
         north = null;
         west = null;
