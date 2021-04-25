@@ -28,4 +28,12 @@ public class Path {
     public int getSize() {
         return path.size();
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        while(isNotEmpty())
+            stringBuilder.append(path.pop()).append("    ");
+        return stringBuilder.toString();
+    }
 }

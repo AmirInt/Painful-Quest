@@ -9,18 +9,31 @@ public class Main {
 
         BiBFS biBFS = new BiBFS(environment);
 
-//        Path path = biBFS.searchRobot(environment.getBlock()[3][3], environment.getBlock()[4][4]);
-//        while (!path.isEmpty()) {
+//        for (Path path:
+//                biBFS.searchPlates(environment.getButterPlates().get(1), environment.getGoals().get(1))) {
+//            System.out.println("Path:");
+//            while (path.isNotEmpty()) {
+//                Node node;
+//                node = path.pop();
+//                System.out.print(node.getX() + "," + node.getY() + "      ");
+//            }
+//            System.out.println();
+//        }
+
+//        Path path = biBFS.searchRobot(environment.getStartingNode(), environment.getBlock()[1][2]);
+//        while (path.isNotEmpty()) {
 //            Node node;
 //            node = path.pop();
 //            System.out.print(node.getX() + "," + node.getY() + "      ");
 //        }
 
         LinkedList<Node> path = biBFS.search();
+        System.out.println(path.size());
         Node node = path.pollFirst();
         while (node != null) {
-            System.out.print(node.getX() + "," + node.getY() + "      ");
+            System.out.print(node + "      ");
             node = path.pollFirst();
         }
+
     }
 }

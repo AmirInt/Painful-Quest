@@ -3,13 +3,13 @@ import java.util.LinkedList;
 
 public class BiBFS {
 
-    private Environment environment;
+    private final Environment environment;
 
     public BiBFS(Environment environment) {
         this.environment = environment;
     }
 
-    private ArrayList<Path> searchPlates(Node butterPlate, Node goal) {
+    public ArrayList<Path> searchPlates(Node butterPlate, Node goal) {
 
         ArrayList<Node> explored = new ArrayList<>();
         ArrayList<Path> paths = new ArrayList<>();
@@ -49,7 +49,7 @@ public class BiBFS {
 
                 if (isViable(explored, successor) && isNotExplored(explored, successor) && isViable(explored, successor.getOppositeOf(expanded))) {
                     if (compare(successor, headFringe)) {
-                        paths.add(createPath(expanded, successor));
+                        paths.add(createPath(successor, expanded));
                         explored.add(successor);
                     }
                     else {
@@ -66,13 +66,17 @@ public class BiBFS {
 
     public Path searchRobot(Node start, Node end) {
 
-        System.out.println("inside robot search");
+        if (start.equals(end))
+            return new Path(null);
+
         ArrayList<Node> explored = new ArrayList<>();
         ArrayList<Path> paths = new ArrayList<>();
         LinkedList<Node> headFringe = new LinkedList<>();
         LinkedList<Node> tailFringe = new LinkedList<>();
         Node expanded;
 
+        start.setAncestor(null);
+        end.setAncestor(null);
         headFringe.add(start);
         tailFringe.add(end);
 
@@ -82,7 +86,6 @@ public class BiBFS {
             if (expanded == null) {
                 break;
             }
-            System.out.println("expanded: " + expanded.getX() + "," + expanded.getY());
             for (Node successor:
                     expanded.getNeighbours()) {
 
@@ -109,7 +112,7 @@ public class BiBFS {
                 if (isViable(explored, successor) && !tailFringe.contains(successor)
                         && isNotExplored(explored, successor)) {
                     if (compare(successor, headFringe)) {
-                        paths.add(createPath(expanded, successor));
+                        paths.add(createPath(successor, expanded));
                         explored.add(successor);
                     }
                     else {
@@ -136,63 +139,70 @@ public class BiBFS {
 
         LinkedList<Node> finalPath = new LinkedList<>();
         int finalPathExpense = Integer.MAX_VALUE;
+        Node originalPlate = environment.getButterPlates().get(0);
+        Node originalStart = environment.getStartingNode();
 
         for (Path path:
              searchPlates(environment.getButterPlates().get(0), environment.getGoals().get(0))) {
-            System.out.println("one plate path started");
+
+            environment.setStartingNode(originalStart);
+            environment.getButterPlates().remove(0);
+            environment.getButterPlates().add(originalPlate);
+
             Node n1, n2;
             LinkedList<Node> trialPath = new LinkedList<>();
-            int trialPathSize = 0;
             n1 = path.pop();
             n2 = path.pop();
+
             Path robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
-            robotPath.pop();
-            Node robotPathNode = robotPath.pop();
-            while (robotPath.isNotEmpty()) {
-                trialPath.add(robotPathNode);
-                ++trialPathSize;
-                robotPathNode = robotPath.pop();
+            if (robotPath != null && robotPath.isNotEmpty()) {
+
+                robotPath.pop();
+
+                while (robotPath.isNotEmpty())
+                    trialPath.add(robotPath.pop());
+
+                environment.setStartingNode(trialPath.peekLast());
+                System.out.println();
             }
 
             while (path.isNotEmpty()) {
-                System.out.println("n1: " + n1.getX() + "," + n1.getY());
-                System.out.println("n2: " + n2.getX() + "," + n2.getY());
-                if (!n1.getOppositeOf(n2).equals(trialPath.peekLast())) {
-                    System.out.println(trialPath.peekLast().getX() + "," + trialPath.peekLast().getY());
-                    robotPath = searchRobot(trialPath.peekLast(), n1.getOppositeOf(n2));
-                    System.out.println("robot search done");
-                    robotPath.pop();
-                    while (robotPath.isNotEmpty()) {
-                        trialPath.add(robotPath.pop());
-                        ++trialPathSize;
+
+                if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
+                    robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
+                    if (robotPath != null) {
+                        robotPath.pop();
+
+                        while (robotPath.isNotEmpty())
+                            trialPath.add(robotPath.pop());
+
+                        environment.setStartingNode(trialPath.peekLast());
                     }
                 }
                 trialPath.add(n1);
-                ++trialPathSize;
+                environment.setStartingNode(n1);
+                environment.getButterPlates().set(environment.getButterPlates().indexOf(n1), n2);
                 n1 = n2;
                 n2 = path.pop();
             }
-            System.out.println("n1: " + n1.getX() + "," + n1.getY());
-            System.out.println("n2: " + n2.getX() + "," + n2.getY());
-            if (!n1.getOppositeOf(n2).equals(trialPath.peekLast())) {
-                System.out.println(trialPath.peekLast().getX() + "," + trialPath.peekLast().getY());
-                robotPath = searchRobot(trialPath.peekLast(), n1.getOppositeOf(n2));
-                robotPath.pop();
-                while (robotPath.isNotEmpty()) {
-                    trialPath.add(robotPath.pop());
-                    ++trialPathSize;
+
+            if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
+                robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
+                if (robotPath != null) {
+
+                    robotPath.pop();
+
+                    while (robotPath.isNotEmpty())
+                        trialPath.add(robotPath.pop());
+
                 }
-                System.out.println("robot search done");
+                environment.setStartingNode(trialPath.peekLast());
             }
             trialPath.add(n1);
-            ++trialPathSize;
 
-            trialPath.add(n1);
-            ++trialPathSize;
-
-            if (trialPathSize < finalPathExpense) {
+            if (trialPath.size() < finalPathExpense) {
                 finalPath = trialPath;
-                finalPathExpense = trialPathSize;
+                finalPathExpense = trialPath.size();
             }
         }
 
@@ -209,14 +219,14 @@ public class BiBFS {
     }
 
     private Path createPath(Node oneEnd, Node theOtherEnd) {
-        Path aux = new Path(oneEnd);
+        Path aux = new Path(theOtherEnd);
         Path path = new Path(null);
         while (aux.isNotEmpty()) {
             path.push(aux.pop());
         }
-        while (theOtherEnd != null) {
-            path.push(theOtherEnd);
-            theOtherEnd = theOtherEnd.getAncestor();
+        while (oneEnd != null) {
+            path.push(oneEnd);
+            oneEnd = oneEnd.getAncestor();
         }
         return path;
     }

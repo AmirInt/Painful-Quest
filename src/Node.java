@@ -96,13 +96,13 @@ public class Node {
 
     public ArrayList<Node> getNeighbours() {
         ArrayList<Node> neighbours = new ArrayList<>();
-        if (east != null)
+        if (east != null && !east.isObstacle())
             neighbours.add(east);
-        if (north != null)
+        if (north != null && !north.isObstacle())
             neighbours.add(north);
-        if (west != null)
+        if (west != null && !west.isObstacle())
             neighbours.add(west);
-        if (south != null)
+        if (south != null && !south.isObstacle())
             neighbours.add(south);
         return neighbours;
     }
@@ -132,4 +132,9 @@ public class Node {
         return Objects.hash(xCoordinate, yCoordinate);
     }
 
+    @Override
+    public String toString() {
+        return  xCoordinate +
+                "," + yCoordinate;
+    }
 }

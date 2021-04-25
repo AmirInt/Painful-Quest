@@ -59,6 +59,10 @@ public class Environment {
         }
     }
 
+    public void setStartingNode(Node startingNode) {
+        this.startingNode = startingNode;
+    }
+
     public Node getStartingNode() {
         return startingNode;
     }
