@@ -12,6 +12,7 @@ public class Node {
     private Node west;
     private Node south;
     private boolean obstacle;
+    private int depth;
 
     public Node(int x, int y) {
         xCoordinate = x;
@@ -22,6 +23,8 @@ public class Node {
         north = null;
         west = null;
         south = null;
+        obstacle = false;
+        depth = 0;
     }
 
     public void setEast(Node east) {
@@ -82,6 +85,14 @@ public class Node {
 
     public Node getSouth() {
         return south;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    public int getDepth() {
+        return depth;
     }
 
     public Node getOppositeOf(Node node) {
