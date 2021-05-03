@@ -28,10 +28,11 @@ public class BiBFS {
             for (Node successor:
                  expanded.getNeighbours()) {
 
-                if (isNotExplored(explored, successor) && isViable(explored, successor) && isViable(explored, expanded.getOppositeOf(successor))) {
+                if (isNotExplored(explored, successor) && !headFringe.contains(successor) &&
+                        isViable(explored, expanded.getOppositeOf(successor)) && isViable(explored, successor)) {
                     if (compare(successor, tailFringe)) {
                         paths.add(createPath(expanded, successor));
-                        explored.add(successor);
+//                        explored.add(successor);
                     }
                     else {
                         successor.setAncestor(expanded);
@@ -47,10 +48,11 @@ public class BiBFS {
             for (Node successor:
                     expanded.getNeighbours()) {
 
-                if (isViable(explored, successor) && isNotExplored(explored, successor) && isViable(explored, successor.getOppositeOf(expanded))) {
+                if (!tailFringe.contains(successor) && isNotExplored(explored, successor) &&
+                        isViable(explored, successor) && isViable(explored, successor.getOppositeOf(expanded))) {
                     if (compare(successor, headFringe)) {
                         paths.add(createPath(successor, expanded));
-                        explored.add(successor);
+//                        explored.add(successor);
                     }
                     else {
                         successor.setAncestor(expanded);
@@ -67,7 +69,7 @@ public class BiBFS {
     public Path searchRobot(Node start, Node end) {
 
         if (start.equals(end))
-            return new Path(null);
+            return new Path(start);
 
         ArrayList<Node> explored = new ArrayList<>();
         ArrayList<Path> paths = new ArrayList<>();
@@ -138,74 +140,102 @@ public class BiBFS {
     public LinkedList<Node> search() {
 
         LinkedList<Node> finalPath = new LinkedList<>();
-        int finalPathExpense = Integer.MAX_VALUE;
-        Node originalPlate = environment.getButterPlates().get(0);
-        Node originalStart = environment.getStartingNode();
+        LinkedList<Node> partialPath;
+        Node originalPlate;
+        Node nextStartingPoint = environment.getStartingNode();
+        int selectedButterPlate = 0, selectedGoal = 0;
+        int partialPathSize;
 
-        for (Path path:
-             searchPlates(environment.getButterPlates().get(0), environment.getGoals().get(0))) {
+        while (environment.getButterPlates().size() > 0 && environment.getGoals().size() > 0) {
 
-            environment.setStartingNode(originalStart);
-            environment.getButterPlates().remove(0);
-            environment.getButterPlates().add(originalPlate);
+            partialPathSize = Integer.MAX_VALUE;
+            partialPath = new LinkedList<>();
 
-            Node n1, n2;
-            LinkedList<Node> trialPath = new LinkedList<>();
-            n1 = path.pop();
-            n2 = path.pop();
+            for (int i = 0; i < environment.getButterPlates().size(); ++i) {
 
-            Path robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
-            if (robotPath != null && robotPath.isNotEmpty()) {
+                originalPlate = environment.getButterPlates().get(i);
 
-                robotPath.pop();
+                for (int j = 0; j < environment.getGoals().size(); ++j) {
 
-                while (robotPath.isNotEmpty())
-                    trialPath.add(robotPath.pop());
+                    environment.reset();
 
-                environment.setStartingNode(trialPath.peekLast());
-                System.out.println();
-            }
+                    for (Path path :
+                            searchPlates(originalPlate, environment.getGoals().get(j))) {
 
-            while (path.isNotEmpty()) {
+                        Node n1, n2;
+                        LinkedList<Node> trialPath = new LinkedList<>();
+                        n1 = path.pop();
+                        n2 = path.pop();
 
-                if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
-                    robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
-                    if (robotPath != null) {
+                        assert nextStartingPoint != null;
+                        Path robotPath = searchRobot(nextStartingPoint, n1.getOppositeOf(n2));
+                        if (robotPath == null)
+                            continue;
+
                         robotPath.pop();
-
                         while (robotPath.isNotEmpty())
                             trialPath.add(robotPath.pop());
 
                         environment.setStartingNode(trialPath.peekLast());
+
+                        while (path.isNotEmpty()) {
+
+                            if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
+                                robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
+                                if (robotPath != null) {
+                                    robotPath.pop();
+
+                                    while (robotPath.isNotEmpty())
+                                        trialPath.add(robotPath.pop());
+
+                                    environment.setStartingNode(trialPath.peekLast());
+                                }
+                            }
+                            trialPath.add(n1);
+                            environment.setStartingNode(n1);
+                            environment.getButterPlates().set(environment.getButterPlates().indexOf(n1), n2);
+                            n1 = n2;
+                            n2 = path.pop();
+                        }
+
+                        if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
+                            robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
+                            if (robotPath != null) {
+
+                                robotPath.pop();
+
+                                while (robotPath.isNotEmpty())
+                                    trialPath.add(robotPath.pop());
+
+                            }
+                            environment.setStartingNode(trialPath.peekLast());
+                        }
+                        trialPath.add(n1);
+
+                        if (trialPath.size() < partialPathSize) {
+                            partialPath.addAll(trialPath);
+                            partialPathSize = trialPath.size();
+                            selectedButterPlate = i;
+                            selectedGoal = j;
+                        }
+
+                        environment.getButterPlates().set(i, originalPlate);
+                        environment.setStartingNode(nextStartingPoint);
                     }
-                }
-                trialPath.add(n1);
-                environment.setStartingNode(n1);
-                environment.getButterPlates().set(environment.getButterPlates().indexOf(n1), n2);
-                n1 = n2;
-                n2 = path.pop();
-            }
-
-            if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
-                robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
-                if (robotPath != null) {
-
-                    robotPath.pop();
-
-                    while (robotPath.isNotEmpty())
-                        trialPath.add(robotPath.pop());
 
                 }
-                environment.setStartingNode(trialPath.peekLast());
             }
-            trialPath.add(n1);
 
-            if (trialPath.size() < finalPathExpense) {
-                finalPath = trialPath;
-                finalPathExpense = trialPath.size();
-            }
+            if (partialPathSize == 0)
+                return null;
+
+            finalPath.addAll(partialPath);
+            nextStartingPoint = partialPath.peekLast();
+            environment.getButterPlates().remove(selectedButterPlate);
+            environment.getGoals().get(selectedGoal).setObstacle(true);
+            environment.getGoals().remove(selectedGoal);
+
         }
-
         return finalPath;
     }
 

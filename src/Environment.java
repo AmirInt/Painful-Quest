@@ -59,6 +59,16 @@ public class Environment {
         }
     }
 
+    public void reset() {
+        for (Node[] row:
+             block) {
+            for (Node node:
+                 row) {
+                node.setAncestor(null);
+            }
+        }
+    }
+
     public void setStartingNode(Node startingNode) {
         this.startingNode = startingNode;
     }
