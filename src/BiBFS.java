@@ -11,6 +11,8 @@ public class BiBFS {
 
     public ArrayList<Path> searchPlates(Node butterPlate, Node goal) {
 
+        environment.reset();
+
         ArrayList<Node> explored = new ArrayList<>();
         ArrayList<Path> paths = new ArrayList<>();
         LinkedList<Node> headFringe = new LinkedList<>();
@@ -32,7 +34,6 @@ public class BiBFS {
                         isViable(explored, expanded.getOppositeOf(successor)) && isViable(explored, successor)) {
                     if (compare(successor, tailFringe)) {
                         paths.add(createPath(expanded, successor));
-//                        explored.add(successor);
                     }
                     else {
                         successor.setAncestor(expanded);
@@ -52,7 +53,6 @@ public class BiBFS {
                         isViable(explored, successor) && isViable(explored, successor.getOppositeOf(expanded))) {
                     if (compare(successor, headFringe)) {
                         paths.add(createPath(successor, expanded));
-//                        explored.add(successor);
                     }
                     else {
                         successor.setAncestor(expanded);
@@ -67,6 +67,8 @@ public class BiBFS {
     }
 
     public Path searchRobot(Node start, Node end) {
+
+        environment.reset();
 
         if (start.equals(end))
             return new Path(start);
@@ -95,7 +97,6 @@ public class BiBFS {
                         && isViable(explored, successor)) {
                     if (compare(successor, tailFringe)) {
                         paths.add(createPath(expanded, successor));
-                        explored.add(successor);
                     }
                     else {
                         successor.setAncestor(expanded);
@@ -115,7 +116,6 @@ public class BiBFS {
                         && isNotExplored(explored, successor)) {
                     if (compare(successor, headFringe)) {
                         paths.add(createPath(successor, expanded));
-                        explored.add(successor);
                     }
                     else {
                         successor.setAncestor(expanded);
@@ -157,8 +157,6 @@ public class BiBFS {
 
                 for (int j = 0; j < environment.getGoals().size(); ++j) {
 
-                    environment.reset();
-
                     for (Path path :
                             searchPlates(originalPlate, environment.getGoals().get(j))) {
 
@@ -176,7 +174,8 @@ public class BiBFS {
                         while (robotPath.isNotEmpty())
                             trialPath.add(robotPath.pop());
 
-                        environment.setStartingNode(trialPath.peekLast());
+                        if (trialPath.size() > 0)
+                            environment.setStartingNode(trialPath.peekLast());
 
                         while (path.isNotEmpty()) {
 
@@ -213,7 +212,7 @@ public class BiBFS {
                         trialPath.add(n1);
 
                         if (trialPath.size() < partialPathSize) {
-                            partialPath.addAll(trialPath);
+                            partialPath = new LinkedList<>(trialPath);
                             partialPathSize = trialPath.size();
                             selectedButterPlate = i;
                             selectedGoal = j;
@@ -226,7 +225,7 @@ public class BiBFS {
                 }
             }
 
-            if (partialPathSize == 0)
+            if (partialPath.size() == 0)
                 return null;
 
             finalPath.addAll(partialPath);

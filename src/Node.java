@@ -3,8 +3,8 @@ import java.util.Objects;
 
 public class Node {
 
-    private int xCoordinate;
-    private int yCoordinate;
+    private final int xCoordinate;
+    private final int yCoordinate;
     private int expense;
     private Node ancestor;
     private Node east;
@@ -13,6 +13,7 @@ public class Node {
     private Node south;
     private boolean obstacle;
     private int depth;
+    private int f;
 
     public Node(int x, int y) {
         xCoordinate = x;
@@ -55,6 +56,10 @@ public class Node {
         this.obstacle = obstacle;
     }
 
+    public void setF(int f) {
+        this.f = f;
+    }
+
     public Node getAncestor() {
         return ancestor;
     }
@@ -85,6 +90,10 @@ public class Node {
 
     public Node getSouth() {
         return south;
+    }
+
+    public int getF() {
+        return f;
     }
 
     public void setDepth(int depth) {
@@ -119,10 +128,10 @@ public class Node {
     }
 
     public String relativeDirectionOf(Node node) {
-        if (east.equals(node)) return "R";
-        if (north.equals(node)) return "U";
-        if (west.equals(node)) return "L";
-        if (south. equals(node)) return "D";
+        if (node.equals(east)) return "R";
+        if (node.equals(north)) return "U";
+        if (node.equals(west)) return "L";
+        if (node.equals(south)) return "D";
         return "NA";
     }
 
