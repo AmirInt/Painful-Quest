@@ -52,7 +52,7 @@ public class IDS extends Search {
     }
 
     //This method finds the paths from butter to goal
-    public ArrayList<Path> searchButter(Node start, Node goal, int limit) {
+    public ArrayList<Path> searchPlate(Node start, Node goal) {
 
         ArrayList<Path> paths = new ArrayList<>();
         ArrayList<Node> explored = new ArrayList<>();
