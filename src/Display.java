@@ -26,9 +26,16 @@ public class Display extends JFrame {
     private int cost;
     private int depth;
     private final int blockSize;
+    private final MouseHandler mouseHandler;
+    private int counter;
 
+    /**
+     * Instantiating this class
+     * @param environment The whole desk
+     */
     public Display(Environment environment) {
 
+        mouseHandler = new MouseHandler();
         setUpFrame();
         this.environment = environment;
         robot = environment.getBlock()[environment.getStartingNode().getY()][environment.getStartingNode().getX()];
@@ -44,22 +51,25 @@ public class Display extends JFrame {
         }
         cost = 0;
         blockSize = 600 / Math.max(environment.getHeight(), environment.getWidth());
+        counter = 0;
     }
 
+    /**
+     * Creates new window to graphically display the robot path
+     */
     private void setUpFrame() {
-
         this.setSize(1280, 720);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
         nextButton = new JLabel("NEXT");
-        nextButton.addMouseListener(new MouseHandler());
+        nextButton.addMouseListener(mouseHandler);
         depthLabel = new JLabel();
         costLabel = new JLabel();
         path = new JTextArea();
         path.setEnabled(false);
         path.setDisabledTextColor(Color.BLACK);
         path.setOpaque(false);
-        path.setFont(new Font("", BOLD, 16));
+        path.setFont(new Font("", BOLD, 13));
         path.setPreferredSize(new Dimension(300, 200));
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setPreferredSize(new Dimension(400, 720));
@@ -83,6 +93,10 @@ public class Display extends JFrame {
         this.setVisible(true);
     }
 
+    /**
+     * Used to paint the window component
+     * @param g Graphics object, drawer of the board
+     */
     private void display(Graphics g) {
         Graphics2D g2D = (Graphics2D) g;
         g2D.setFont(new Font("", BOLD, 16));
@@ -134,9 +148,13 @@ public class Display extends JFrame {
         }
     }
 
+    /**
+     * Processes the next move of the agent and writes it down
+     */
     private void getNext() {
         if (robotPath == null) {
-            System.out.println("Not Possible");
+            path.append("Not Possible");
+            nextButton.removeMouseListener(mouseHandler);
         }
         else if (robotPath.size() > 0){
             Node nextStep = robotPath.pollFirst();
@@ -150,6 +168,9 @@ public class Display extends JFrame {
                 }
             }
             robot = nextStep;
+            counter = (counter + 1) % 12;
+            if (counter == 0)
+                path.append("\n");
             }
         else {
             costLabel.setText("Cost: " + cost);
@@ -165,6 +186,9 @@ public class Display extends JFrame {
         display(g);
     }
 
+    /**
+     * Class handling the mouse actions on "NEXT" button
+     */
     private class MouseHandler extends MouseAdapter {
 
         @Override

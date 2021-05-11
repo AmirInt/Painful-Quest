@@ -1,41 +1,66 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class BiBFS {
+/**
+ * Class BiBFS performs a bidirectional search based on the BFS algorithm
+ */
+public class BiBFS extends Search {
 
-    private final Environment environment;
-
+    /**
+     * Instantiates this class
+     * @param environment The searching environment
+     */
     public BiBFS(Environment environment) {
-        this.environment = environment;
+        super(environment);
     }
 
-    public ArrayList<Path> searchPlates(Node butterPlate, Node goal) {
+    /**
+     * Searches to find all possible (optimum) paths from the given
+     * butter plate to the given goal node
+     * @param butterPlate The butter plate to start form
+     * @param goal The goal node to be reached
+     * @return An ArrayList of all the possible paths from "butterPlate" to "goal"
+     */
+    @Override
+    public ArrayList<Path> searchPlate(Node butterPlate, Node goal) {
 
+//        Resets the environment to remove all nodes' ancestors
         environment.reset();
 
+//        The explored set
         ArrayList<Node> explored = new ArrayList<>();
+//        The ArrayList of all possible paths, initially empty
         ArrayList<Path> paths = new ArrayList<>();
+//        The two fringe lists for the two searching sides
         LinkedList<Node> headFringe = new LinkedList<>();
         LinkedList<Node> tailFringe = new LinkedList<>();
-        Node expanded;
-
         headFringe.add(butterPlate);
         tailFringe.add(goal);
+//        Represents the last expanded node
+        Node expanded;
+
 
         while (true) {
 
+//            Moving ahead from the head side
             expanded = headFringe.poll();
+//            Search ends if there is no node left in the fringe list to be expanded
             if (expanded == null)
                 break;
+
+//            Generating the descendants
             for (Node successor:
                  expanded.getNeighbours()) {
-
                 if (isNotExplored(explored, successor) && !headFringe.contains(successor) &&
                         isViable(explored, expanded.getOppositeOf(successor)) && isViable(explored, successor)) {
                     if (compare(successor, tailFringe)) {
+//                        If this descendant exist among the tail fringe nodes
+//                        creates a path and adds it to the set of paths
                         paths.add(createPath(expanded, successor));
                     }
                     else {
+//                        If this descendant is not found among the tail fringe nodes
+//                        it's added to the fringe list to be expanded later
                         successor.setAncestor(expanded);
                         headFringe.add(successor);
                     }
@@ -43,18 +68,25 @@ public class BiBFS {
             }
             explored.add(expanded);
 
+//            Moving ahead from the tail side
             expanded = tailFringe.poll();
+//            Search ends if there is no node left in the fringe list to be expanded
             if (expanded == null)
                 break;
+
+//            Generating the descendants
             for (Node successor:
                     expanded.getNeighbours()) {
-
                 if (!tailFringe.contains(successor) && isNotExplored(explored, successor) &&
                         isViable(explored, successor) && isViable(explored, successor.getOppositeOf(expanded))) {
                     if (compare(successor, headFringe)) {
+//                        If this descendant exist among the head fringe nodes
+//                        creates a path and adds it to the set of paths
                         paths.add(createPath(successor, expanded));
                     }
                     else {
+//                        If this descendant is not found among the tail fringe nodes
+//                        it's added to the fringe list to be expanded later
                         successor.setAncestor(expanded);
                         tailFringe.add(successor);
                     }
@@ -66,39 +98,54 @@ public class BiBFS {
         return paths;
     }
 
+    @Override
     public Path searchRobot(Node start, Node end) {
 
+//        Resets the environment to clear nodes' ancestors
         environment.reset();
 
+//        If start and end nodes are the same creates ta path and immediately
+//        returns it
         if (start.equals(end))
             return new Path(start);
 
+//        The explored set
         ArrayList<Node> explored = new ArrayList<>();
+//        The set of paths found
         ArrayList<Path> paths = new ArrayList<>();
+//        The two fringe lists for the two sides of the search
         LinkedList<Node> headFringe = new LinkedList<>();
         LinkedList<Node> tailFringe = new LinkedList<>();
-        Node expanded;
-
-        start.setAncestor(null);
-        end.setAncestor(null);
         headFringe.add(start);
         tailFringe.add(end);
+//        Represents the expanded node each time
+        Node expanded;
+
 
         while (true) {
 
+//            Moving ahead from the head side
             expanded = headFringe.poll();
+
+//            Search ends if there is no node left in the fringe list to be expanded
             if (expanded == null) {
                 break;
             }
+
+//            Generating the descendants
             for (Node successor:
                     expanded.getNeighbours()) {
 
                 if (isNotExplored(explored, successor) && !headFringe.contains(successor)
                         && isViable(explored, successor)) {
                     if (compare(successor, tailFringe)) {
+//                        If this descendant exist among the tail fringe nodes
+//                        creates a path and adds it to the set of paths
                         paths.add(createPath(expanded, successor));
                     }
                     else {
+//                        If this descendant is not found among the tail fringe nodes
+//                        it's added to the fringe list to be expanded later
                         successor.setAncestor(expanded);
                         headFringe.add(successor);
                     }
@@ -106,18 +153,27 @@ public class BiBFS {
             }
             explored.add(expanded);
 
+//            Moving ahead from the head side
             expanded = tailFringe.poll();
+
+//            Search ends if there is no node left in the fringe list to be expanded
             if (expanded == null)
                 break;
+
+//            Generating the descendants
             for (Node successor:
                     expanded.getNeighbours()) {
 
                 if (isViable(explored, successor) && !tailFringe.contains(successor)
                         && isNotExplored(explored, successor)) {
                     if (compare(successor, headFringe)) {
+//                        If this descendant exist among the head fringe nodes
+//                        creates a path and adds it to the set of paths
                         paths.add(createPath(successor, expanded));
                     }
                     else {
+//                        If this descendant is not found among the head fringe nodes
+//                        it's added to the fringe list to be expanded later
                         successor.setAncestor(expanded);
                         tailFringe.add(successor);
                     }
@@ -126,6 +182,8 @@ public class BiBFS {
             explored.add(expanded);
 
         }
+
+//        Choosing the optimum path among the found paths
         Path finalPath = null;
         for (Path path:
              paths) {
@@ -137,116 +195,18 @@ public class BiBFS {
         return finalPath;
     }
 
+    @Override
     public LinkedList<Node> search() {
-
-        LinkedList<Node> finalPath = new LinkedList<>();
-        LinkedList<Node> partialPath;
-        Node originalPlate;
-        Node nextStartingPoint = environment.getStartingNode();
-        int selectedButterPlate = 0, selectedGoal = 0;
-        int partialPathSize;
-
-        while (environment.getButterPlates().size() > 0 && environment.getGoals().size() > 0) {
-
-            partialPathSize = Integer.MAX_VALUE;
-            partialPath = new LinkedList<>();
-
-            for (int i = 0; i < environment.getButterPlates().size(); ++i) {
-
-                originalPlate = environment.getButterPlates().get(i);
-
-                for (int j = 0; j < environment.getGoals().size(); ++j) {
-
-                    for (Path path :
-                            searchPlates(originalPlate, environment.getGoals().get(j))) {
-
-                        Node n1, n2;
-                        LinkedList<Node> trialPath = new LinkedList<>();
-                        n1 = path.pop();
-                        n2 = path.pop();
-
-                        assert nextStartingPoint != null;
-                        Path robotPath = searchRobot(nextStartingPoint, n1.getOppositeOf(n2));
-                        if (robotPath == null)
-                            continue;
-
-                        robotPath.pop();
-                        while (robotPath.isNotEmpty())
-                            trialPath.add(robotPath.pop());
-
-                        if (trialPath.size() > 0)
-                            environment.setStartingNode(trialPath.peekLast());
-
-                        while (path.isNotEmpty()) {
-
-                            if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
-                                robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
-                                if (robotPath != null) {
-                                    robotPath.pop();
-
-                                    while (robotPath.isNotEmpty())
-                                        trialPath.add(robotPath.pop());
-
-                                    environment.setStartingNode(trialPath.peekLast());
-                                }
-                            }
-                            trialPath.add(n1);
-                            environment.setStartingNode(n1);
-                            environment.getButterPlates().set(environment.getButterPlates().indexOf(n1), n2);
-                            n1 = n2;
-                            n2 = path.pop();
-                        }
-
-                        if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
-                            robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
-                            if (robotPath != null) {
-
-                                robotPath.pop();
-
-                                while (robotPath.isNotEmpty())
-                                    trialPath.add(robotPath.pop());
-
-                            }
-                            environment.setStartingNode(trialPath.peekLast());
-                        }
-                        trialPath.add(n1);
-
-                        if (trialPath.size() < partialPathSize) {
-                            partialPath = new LinkedList<>(trialPath);
-                            partialPathSize = trialPath.size();
-                            selectedButterPlate = i;
-                            selectedGoal = j;
-                        }
-
-                        environment.getButterPlates().set(i, originalPlate);
-                        environment.setStartingNode(nextStartingPoint);
-                    }
-
-                }
-            }
-
-            if (partialPath.size() == 0)
-                return null;
-
-            finalPath.addAll(partialPath);
-            nextStartingPoint = partialPath.peekLast();
-            environment.getButterPlates().remove(selectedButterPlate);
-            environment.getGoals().get(selectedGoal).setObstacle(true);
-            environment.getGoals().remove(selectedGoal);
-
-        }
-        return finalPath;
+        return super.search();
     }
 
-    private boolean compare(Node node, LinkedList<Node> fringe) {
-        for (Node fringeNode:
-             fringe) {
-            if (fringeNode.equals(node))
-                return true;
-        }
-        return false;
-    }
-
+    /**
+     * Creates a path by joining the two ends of the paths found by
+     * the two sides (head and tail) in BiBFS
+     * @param oneEnd The end of one paths
+     * @param theOtherEnd The end of the other path
+     * @return The overall path
+     */
     private Path createPath(Node oneEnd, Node theOtherEnd) {
         Path aux = new Path(theOtherEnd);
         Path path = new Path(null);
@@ -258,20 +218,5 @@ public class BiBFS {
             oneEnd = oneEnd.getAncestor();
         }
         return path;
-    }
-
-    private boolean isViable(ArrayList<Node> explored, Node node) {
-        if (node == null || node.isObstacle())
-            return false;
-        for (Node butterPlate:
-             environment.getButterPlates()) {
-            if (!explored.contains(butterPlate) && node.equals(butterPlate))
-                return false;
-        }
-        return true;
-    }
-
-    private boolean isNotExplored(ArrayList<Node> explored, Node node) {
-        return !explored.contains(node);
     }
 }
