@@ -7,8 +7,11 @@ public class Environment {
     private Node startingNode;
     private ArrayList<Node> goals;
     private ArrayList<Node> butterPlates;
+    private final int height, width;
 
     public Environment(int height, int width, Scanner scanner) {
+        this.height = height;
+        this.width = width;
         block = new Node[height][width];
         goals = new ArrayList<>();
         butterPlates = new ArrayList<>();
@@ -59,6 +62,16 @@ public class Environment {
         }
     }
 
+    public void reset() {
+        for (Node[] row:
+             block) {
+            for (Node node:
+                 row) {
+                node.setAncestor(null);
+            }
+        }
+    }
+
     public void setStartingNode(Node startingNode) {
         this.startingNode = startingNode;
     }
@@ -73,6 +86,14 @@ public class Environment {
 
     public ArrayList<Node> getGoals() {
         return goals;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
     }
 
     public Node[][] getBlock() {

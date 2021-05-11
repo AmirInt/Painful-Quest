@@ -6,11 +6,10 @@ public class Path {
 
     public Path(Node end) {
         path = new Stack<>();
-        if (end != null)
-            while (end != null) {
-                path.push(end);
-                end = end.getAncestor();
-            }
+        while (end != null) {
+            path.push(end);
+            end = end.getAncestor();
+        }
     }
 
     public void push(Node newNode) {
