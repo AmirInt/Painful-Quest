@@ -50,9 +50,9 @@ public class Environment {
                 else {
                     char c = position.charAt(position.length() - 1);
                     switch (c) {
-                        case 'r' -> startingNode = newNode;
-                        case 'b' -> butterPlates.add(newNode);
-                        case 'p' -> goals.add(newNode);
+                        case 'r': startingNode = newNode;
+                        case 'b': butterPlates.add(newNode);
+                        case 'p': goals.add(newNode);
                     }
                     int expense;
                     if(c == 'b' || c == 'p' || c == 'r') {
