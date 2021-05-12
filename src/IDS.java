@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Stack;
 
 public class IDS extends Search {
 
@@ -8,87 +10,109 @@ public class IDS extends Search {
 
     private int limit = environment.getHeight() * environment.getWidth();
 
-    //This method finds the path that robot should pass to arrive the butter if exist otherwise it returns null
-    public Path searchRobot(Node start, Node end, int limit) {
-        for (int i = 0; i <= limit; i++) {
-            boolean goalTest = limitedDFS(start, end);
-            if (goalTest) {
+    public Path searchRobot(Node start, Node end) {
+        limit = environment.getHeight() * environment.getWidth();
+        for (int i = 0; i <= limit; ++i) {
+            if (limitedDFS(start, end, i))
                 return new Path(end);
-            }
         }
         return null;
     }
 
-    //This method implements the limited version of DFS that should be called in IDS.
-    //If we can reach the goal in the given limited depth it returns true otherwise it returns false
-    private boolean limitedDFS(Node start, Node end) {
-        int depth = 0;
-        ArrayList<Node> explored = new ArrayList<>();
-        ArrayList<Node> fringe = new ArrayList<>();
-        fringe.add(start);
+    /**
+     * Implements the limited version of DFS that is to be called in IDS.
+     * If we can reach the goal in the given limited depth it returns true otherwise it returns false
+     * @param start Starting point
+     * @param end Goal node
+     * @param limit Depth limit within which search can continue
+     * @return True if we can reach the goal in the given depth limit, false otherwise
+     */
+    private boolean limitedDFS(Node start, Node end, int limit) {
 
-        while (depth <= limit) {
-            if (fringe.isEmpty())
-                return false;
-            Node expanded = fringe.remove(fringe.size() - 1);
-            depth = expanded.getDepth();
-            if (depth == limit) {
-                explored.add(expanded);
-                continue;
+//        Resets the environment to remove all nodes' ancestors
+        environment.reset();
+//        The explored set
+        ArrayList<Node> explored = new ArrayList<>();
+//        The two fringe lists for the two searching sides
+        Stack<Node> fringe = new Stack<>();
+        start.setDepth(0);
+        fringe.push(start);
+//        Represents the last expanded node
+        Node expanded;
+
+        while (!fringe.isEmpty()) {
+
+            expanded = fringe.pop();
+            if (expanded.equals(end)) {
+                return true;
             }
-            ArrayList<Node> children = expanded.getNeighbours();
-            for (Node child : children
-            ) {
-                child.setAncestor(expanded);
-                child.setDepth(depth + 1);
-                if (child.equals(end))
-                    return true;
-                if (!explored.contains(child))
-                    fringe.add(child);
+
+            if (expanded.getDepth() == limit)
+                continue;
+
+//            Generating the descendants
+            for (Node child:
+                    expanded.getNeighbours()) {
+                if ((isNotExplored(explored, child) || expanded.getDepth() + 1 <= child.getDepth()) &&
+                        !fringe.contains(child) && isViable(explored, child)) {
+                    child.setAncestor(expanded);
+                    child.setDepth(expanded.getDepth() + 1);
+                    fringe.push(child);
+                }
             }
             explored.add(expanded);
         }
         return false;
     }
 
-    //This method finds the paths from butter to goal
-    public ArrayList<Path> searchPlate(Node start, Node goal) {
+    public ArrayList<Path> searchPlate(Node butterPlate, Node goal) {
 
+//        The ArrayList of all possible paths, initially empty
         ArrayList<Path> paths = new ArrayList<>();
-        ArrayList<Node> explored = new ArrayList<>();
-        ArrayList<Node> fringe = new ArrayList<>();
-        int depth = 0;
-        for (int i = 0; i <= limit; i++) {
-            fringe.add(start);
-            while (depth <= i) {
-                if (fringe.isEmpty())
-                    break;
-                Node expanded = fringe.remove(fringe.size() - 1);
-                while (expanded.equals(goal) && !fringe.isEmpty())
-                    expanded = fringe.remove(fringe.size() - 1);
-                if (fringe.isEmpty())
-                    break;
-                depth = expanded.getDepth();
-                if (depth == limit) {
-                    explored.add(expanded);
+
+        for (int i = 0; i < limit; ++i) {
+//            Resets the environment to remove all nodes' ancestors
+            environment.reset();
+//            The explored set
+            ArrayList<Node> explored = new ArrayList<>();
+//            The two fringe lists for the two searching sides
+            Stack<Node> fringe = new Stack<>();
+            butterPlate.setDepth(0);
+            fringe.push(butterPlate);
+//            Represents the last expanded node
+            Node expanded;
+
+            while (!fringe.isEmpty()) {
+
+                expanded = fringe.pop();
+                if (expanded.equals(goal)) {
+                    paths.add(new Path(expanded));
+                    limit = expanded.getDepth();
                     continue;
                 }
-                ArrayList<Node> children = expanded.getNeighbours();
-                for (Node child : children
-                ) {
-                    child.setAncestor(expanded);
-                    child.setDepth(depth + 1);
-                    if (child.equals(goal)){
-                        Path path = new Path(goal);
-                        if (!paths.contains(path))
-                            paths.add(path);
+
+                if (expanded.getDepth() == i)
+                    continue;
+
+//                Generating the descendants
+                for (Node child:
+                        expanded.getNeighbours()) {
+                    if ((isNotExplored(explored, child) || expanded.getDepth() + 1 <= child.getDepth()) && !fringe.contains(child) &&
+                            isViable(explored, expanded.getOppositeOf(child)) && isViable(explored, child)) {
+                        child.setAncestor(expanded);
+                        child.setDepth(expanded.getDepth() + 1);
+                        fringe.push(child);
                     }
-                    if (!explored.contains(child))
-                        fringe.add(child);
                 }
                 explored.add(expanded);
             }
         }
+
         return paths;
+    }
+
+    @Override
+    public LinkedList<Node> search() {
+        return super.search();
     }
 }
