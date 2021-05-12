@@ -63,15 +63,15 @@ public class Main {
         int option = scanner.nextInt();
 
         switch (option) {
-            case 1: {
+            case 1 -> {
                 IDS ids = new IDS(environment);
                 screen.putResults(ids.search());
             }
-            case 2: {
+            case 2 -> {
                 BiBFS biBFS = new BiBFS(environment);
                 screen.putResults(biBFS.search());
             }
-            case 3: {
+            case 3 -> {
                 AS as = new AS(environment);
                 screen.putResults(as.search());
             }

@@ -106,7 +106,7 @@ public class Display extends JFrame {
         for (int i = 0; i < environment.getHeight(); ++i) {
             for (int j = 0; j < environment.getWidth(); ++j) {
                 if (robot.getX() == j && robot.getY() == i) {
-                    g2D.drawImage(new ImageIcon("src\\Pics\\Robot Place.png").getImage(),
+                    g2D.drawImage(new ImageIcon("Pics\\Robot Place.png").getImage(),
                             100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
                     g2D.drawString(robot.getExpense() + "", 110 + j * blockSize, 90 + i * blockSize);
                 }
@@ -120,7 +120,7 @@ public class Display extends JFrame {
                         }
                     }
                     if (isThere) {
-                        g2D.drawImage(new ImageIcon("src\\Pics\\Butter Plate.png").getImage(),
+                        g2D.drawImage(new ImageIcon("Pics\\Butter Plate.png").getImage(),
                                 100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
                         g2D.drawString(environment.getBlock()[i][j].getExpense() + "", 110 + j * blockSize, 90 + i * blockSize);
                         continue;
@@ -133,17 +133,17 @@ public class Display extends JFrame {
                         }
                     }
                     if (isThere) {
-                        g2D.drawImage(new ImageIcon("src\\Pics\\Goal.png").getImage(),
+                        g2D.drawImage(new ImageIcon("Pics\\Goal.png").getImage(),
                                 100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
                         g2D.drawString(environment.getBlock()[i][j].getExpense() + "", 110 + j * blockSize, 90 + i * blockSize);
                         continue;
                     }
                     if (environment.getBlock()[i][j].isObstacle()) {
-                        g2D.drawImage(new ImageIcon("src\\Pics\\Obstacle.png").getImage(),
+                        g2D.drawImage(new ImageIcon("Pics\\Obstacle.png").getImage(),
                                 100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
                         continue;
                     }
-                    g2D.drawImage(new ImageIcon("src\\Pics\\Free Place.png").getImage(),
+                    g2D.drawImage(new ImageIcon("Pics\\Free Place.png").getImage(),
                             100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
                     g2D.drawString(environment.getBlock()[i][j].getExpense() + "", 110 + j * blockSize, 90 + i * blockSize);
                 }
