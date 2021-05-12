@@ -1,0 +1,1478 @@
+Index: src/BiBFS.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.ArrayList;\r\nimport java.util.LinkedList;\r\n\r\npublic class BiBFS {\r\n\r\n    private final Environment environment;\r\n\r\n    public BiBFS(Environment environment) {\r\n        this.environment = environment;\r\n    }\r\n\r\n    public ArrayList<Path> searchPlates(Node butterPlate, Node goal) {\r\n\r\n        environment.reset();\r\n\r\n        ArrayList<Node> explored = new ArrayList<>();\r\n        ArrayList<Path> paths = new ArrayList<>();\r\n        LinkedList<Node> headFringe = new LinkedList<>();\r\n        LinkedList<Node> tailFringe = new LinkedList<>();\r\n        Node expanded;\r\n\r\n        headFringe.add(butterPlate);\r\n        tailFringe.add(goal);\r\n\r\n        while (true) {\r\n\r\n            expanded = headFringe.poll();\r\n            if (expanded == null)\r\n                break;\r\n            for (Node successor:\r\n                 expanded.getNeighbours()) {\r\n\r\n                if (isNotExplored(explored, successor) && !headFringe.contains(successor) &&\r\n                        isViable(explored, expanded.getOppositeOf(successor)) && isViable(explored, successor)) {\r\n                    if (compare(successor, tailFringe)) {\r\n                        paths.add(createPath(expanded, successor));\r\n                    }\r\n                    else {\r\n                        successor.setAncestor(expanded);\r\n                        headFringe.add(successor);\r\n                    }\r\n                }\r\n            }\r\n            explored.add(expanded);\r\n\r\n            expanded = tailFringe.poll();\r\n            if (expanded == null)\r\n                break;\r\n            for (Node successor:\r\n                    expanded.getNeighbours()) {\r\n\r\n                if (!tailFringe.contains(successor) && isNotExplored(explored, successor) &&\r\n                        isViable(explored, successor) && isViable(explored, successor.getOppositeOf(expanded))) {\r\n                    if (compare(successor, headFringe)) {\r\n                        paths.add(createPath(successor, expanded));\r\n                    }\r\n                    else {\r\n                        successor.setAncestor(expanded);\r\n                        tailFringe.add(successor);\r\n                    }\r\n                }\r\n            }\r\n            explored.add(expanded);\r\n\r\n        }\r\n        return paths;\r\n    }\r\n\r\n    public Path searchRobot(Node start, Node end) {\r\n\r\n        environment.reset();\r\n\r\n        if (start.equals(end))\r\n            return new Path(start);\r\n\r\n        ArrayList<Node> explored = new ArrayList<>();\r\n        ArrayList<Path> paths = new ArrayList<>();\r\n        LinkedList<Node> headFringe = new LinkedList<>();\r\n        LinkedList<Node> tailFringe = new LinkedList<>();\r\n        Node expanded;\r\n\r\n        start.setAncestor(null);\r\n        end.setAncestor(null);\r\n        headFringe.add(start);\r\n        tailFringe.add(end);\r\n\r\n        while (true) {\r\n\r\n            expanded = headFringe.poll();\r\n            if (expanded == null) {\r\n                break;\r\n            }\r\n            for (Node successor:\r\n                    expanded.getNeighbours()) {\r\n\r\n                if (isNotExplored(explored, successor) && !headFringe.contains(successor)\r\n                        && isViable(explored, successor)) {\r\n                    if (compare(successor, tailFringe)) {\r\n                        paths.add(createPath(expanded, successor));\r\n                    }\r\n                    else {\r\n                        successor.setAncestor(expanded);\r\n                        headFringe.add(successor);\r\n                    }\r\n                }\r\n            }\r\n            explored.add(expanded);\r\n\r\n            expanded = tailFringe.poll();\r\n            if (expanded == null)\r\n                break;\r\n            for (Node successor:\r\n                    expanded.getNeighbours()) {\r\n\r\n                if (isViable(explored, successor) && !tailFringe.contains(successor)\r\n                        && isNotExplored(explored, successor)) {\r\n                    if (compare(successor, headFringe)) {\r\n                        paths.add(createPath(successor, expanded));\r\n                    }\r\n                    else {\r\n                        successor.setAncestor(expanded);\r\n                        tailFringe.add(successor);\r\n                    }\r\n                }\r\n            }\r\n            explored.add(expanded);\r\n\r\n        }\r\n        Path finalPath = null;\r\n        for (Path path:\r\n             paths) {\r\n            if (finalPath == null)\r\n                finalPath = path;\r\n            else if (finalPath.getSize() > path.getSize())\r\n                finalPath = path;\r\n        }\r\n        return finalPath;\r\n    }\r\n\r\n    public LinkedList<Node> search() {\r\n\r\n        LinkedList<Node> finalPath = new LinkedList<>();\r\n        LinkedList<Node> partialPath;\r\n        Node originalPlate;\r\n        Node nextStartingPoint = environment.getStartingNode();\r\n        int selectedButterPlate = 0, selectedGoal = 0;\r\n        int partialPathSize;\r\n\r\n        while (environment.getButterPlates().size() > 0 && environment.getGoals().size() > 0) {\r\n\r\n            partialPathSize = Integer.MAX_VALUE;\r\n            partialPath = new LinkedList<>();\r\n\r\n            for (int i = 0; i < environment.getButterPlates().size(); ++i) {\r\n\r\n                originalPlate = environment.getButterPlates().get(i);\r\n\r\n                for (int j = 0; j < environment.getGoals().size(); ++j) {\r\n\r\n                    for (Path path :\r\n                            searchPlates(originalPlate, environment.getGoals().get(j))) {\r\n\r\n                        Node n1, n2;\r\n                        LinkedList<Node> trialPath = new LinkedList<>();\r\n                        n1 = path.pop();\r\n                        n2 = path.pop();\r\n\r\n                        assert nextStartingPoint != null;\r\n                        Path robotPath = searchRobot(nextStartingPoint, n1.getOppositeOf(n2));\r\n                        if (robotPath == null)\r\n                            continue;\r\n\r\n                        robotPath.pop();\r\n                        while (robotPath.isNotEmpty())\r\n                            trialPath.add(robotPath.pop());\r\n\r\n                        if (trialPath.size() > 0)\r\n                            environment.setStartingNode(trialPath.peekLast());\r\n\r\n                        while (path.isNotEmpty()) {\r\n\r\n                            if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {\r\n                                robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));\r\n                                if (robotPath != null) {\r\n                                    robotPath.pop();\r\n\r\n                                    while (robotPath.isNotEmpty())\r\n                                        trialPath.add(robotPath.pop());\r\n\r\n                                    environment.setStartingNode(trialPath.peekLast());\r\n                                }\r\n                            }\r\n                            trialPath.add(n1);\r\n                            environment.setStartingNode(n1);\r\n                            environment.getButterPlates().set(environment.getButterPlates().indexOf(n1), n2);\r\n                            n1 = n2;\r\n                            n2 = path.pop();\r\n                        }\r\n\r\n                        if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {\r\n                            robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));\r\n                            if (robotPath != null) {\r\n\r\n                                robotPath.pop();\r\n\r\n                                while (robotPath.isNotEmpty())\r\n                                    trialPath.add(robotPath.pop());\r\n\r\n                            }\r\n                            environment.setStartingNode(trialPath.peekLast());\r\n                        }\r\n                        trialPath.add(n1);\r\n\r\n                        if (trialPath.size() < partialPathSize) {\r\n                            partialPath = new LinkedList<>(trialPath);\r\n                            partialPathSize = trialPath.size();\r\n                            selectedButterPlate = i;\r\n                            selectedGoal = j;\r\n                        }\r\n\r\n                        environment.getButterPlates().set(i, originalPlate);\r\n                        environment.setStartingNode(nextStartingPoint);\r\n                    }\r\n\r\n                }\r\n            }\r\n\r\n            if (partialPath.size() == 0)\r\n                return null;\r\n\r\n            finalPath.addAll(partialPath);\r\n            nextStartingPoint = partialPath.peekLast();\r\n            environment.getButterPlates().remove(selectedButterPlate);\r\n            environment.getGoals().get(selectedGoal).setObstacle(true);\r\n            environment.getGoals().remove(selectedGoal);\r\n\r\n        }\r\n        return finalPath;\r\n    }\r\n\r\n    private boolean compare(Node node, LinkedList<Node> fringe) {\r\n        for (Node fringeNode:\r\n             fringe) {\r\n            if (fringeNode.equals(node))\r\n                return true;\r\n        }\r\n        return false;\r\n    }\r\n\r\n    private Path createPath(Node oneEnd, Node theOtherEnd) {\r\n        Path aux = new Path(theOtherEnd);\r\n        Path path = new Path(null);\r\n        while (aux.isNotEmpty()) {\r\n            path.push(aux.pop());\r\n        }\r\n        while (oneEnd != null) {\r\n            path.push(oneEnd);\r\n            oneEnd = oneEnd.getAncestor();\r\n        }\r\n        return path;\r\n    }\r\n\r\n    private boolean isViable(ArrayList<Node> explored, Node node) {\r\n        if (node == null || node.isObstacle())\r\n            return false;\r\n        for (Node butterPlate:\r\n             environment.getButterPlates()) {\r\n            if (!explored.contains(butterPlate) && node.equals(butterPlate))\r\n                return false;\r\n        }\r\n        return true;\r\n    }\r\n\r\n    private boolean isNotExplored(ArrayList<Node> explored, Node node) {\r\n        return !explored.contains(node);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/BiBFS.java b/src/BiBFS.java
+--- a/src/BiBFS.java	(revision 5a5792f46192993821407c24294cbb72aeae5073)
++++ b/src/BiBFS.java	(date 1620734230910)
+@@ -1,41 +1,66 @@
+ import java.util.ArrayList;
+ import java.util.LinkedList;
+ 
+-public class BiBFS {
++/**
++ * Class BiBFS performs a bidirectional search based on the BFS algorithm
++ */
++public class BiBFS extends Search {
+ 
+-    private final Environment environment;
+-
++    /**
++     * Instantiates this class
++     * @param environment The searching environment
++     */
+     public BiBFS(Environment environment) {
+-        this.environment = environment;
++        super(environment);
+     }
+ 
+-    public ArrayList<Path> searchPlates(Node butterPlate, Node goal) {
++    /**
++     * Searches to find all possible (optimum) paths from the given
++     * butter plate to the given goal node
++     * @param butterPlate The butter plate to start form
++     * @param goal The goal node to be reached
++     * @return An ArrayList of all the possible paths from "butterPlate" to "goal"
++     */
++    @Override
++    public ArrayList<Path> searchPlate(Node butterPlate, Node goal) {
+ 
++//        Resets the environment to remove all nodes' ancestors
+         environment.reset();
+ 
++//        The explored set
+         ArrayList<Node> explored = new ArrayList<>();
++//        The ArrayList of all possible paths, initially empty
+         ArrayList<Path> paths = new ArrayList<>();
++//        The two fringe lists for the two searching sides
+         LinkedList<Node> headFringe = new LinkedList<>();
+         LinkedList<Node> tailFringe = new LinkedList<>();
+-        Node expanded;
+-
+         headFringe.add(butterPlate);
+         tailFringe.add(goal);
++//        Represents the last expanded node
++        Node expanded;
++
+ 
+         while (true) {
+ 
++//            Moving ahead from the head side
+             expanded = headFringe.poll();
++//            Search ends if there is no node left in the fringe list to be expanded
+             if (expanded == null)
+                 break;
++
++//            Generating the descendants
+             for (Node successor:
+                  expanded.getNeighbours()) {
+-
+                 if (isNotExplored(explored, successor) && !headFringe.contains(successor) &&
+                         isViable(explored, expanded.getOppositeOf(successor)) && isViable(explored, successor)) {
+                     if (compare(successor, tailFringe)) {
++//                        If this descendant exist among the tail fringe nodes
++//                        creates a path and adds it to the set of paths
+                         paths.add(createPath(expanded, successor));
+                     }
+                     else {
++//                        If this descendant is not found among the tail fringe nodes
++//                        it's added to the fringe list to be expanded later
+                         successor.setAncestor(expanded);
+                         headFringe.add(successor);
+                     }
+@@ -43,18 +68,25 @@
+             }
+             explored.add(expanded);
+ 
++//            Moving ahead from the tail side
+             expanded = tailFringe.poll();
++//            Search ends if there is no node left in the fringe list to be expanded
+             if (expanded == null)
+                 break;
++
++//            Generating the descendants
+             for (Node successor:
+                     expanded.getNeighbours()) {
+-
+                 if (!tailFringe.contains(successor) && isNotExplored(explored, successor) &&
+                         isViable(explored, successor) && isViable(explored, successor.getOppositeOf(expanded))) {
+                     if (compare(successor, headFringe)) {
++//                        If this descendant exist among the head fringe nodes
++//                        creates a path and adds it to the set of paths
+                         paths.add(createPath(successor, expanded));
+                     }
+                     else {
++//                        If this descendant is not found among the tail fringe nodes
++//                        it's added to the fringe list to be expanded later
+                         successor.setAncestor(expanded);
+                         tailFringe.add(successor);
+                     }
+@@ -66,39 +98,54 @@
+         return paths;
+     }
+ 
++    @Override
+     public Path searchRobot(Node start, Node end) {
+ 
++//        Resets the environment to clear nodes' ancestors
+         environment.reset();
+ 
++//        If start and end nodes are the same creates ta path and immediately
++//        returns it
+         if (start.equals(end))
+             return new Path(start);
+ 
++//        The explored set
+         ArrayList<Node> explored = new ArrayList<>();
++//        The set of paths found
+         ArrayList<Path> paths = new ArrayList<>();
++//        The two fringe lists for the two sides of the search
+         LinkedList<Node> headFringe = new LinkedList<>();
+         LinkedList<Node> tailFringe = new LinkedList<>();
+-        Node expanded;
+-
+-        start.setAncestor(null);
+-        end.setAncestor(null);
+         headFringe.add(start);
+         tailFringe.add(end);
++//        Represents the expanded node each time
++        Node expanded;
++
+ 
+         while (true) {
+ 
++//            Moving ahead from the head side
+             expanded = headFringe.poll();
++
++//            Search ends if there is no node left in the fringe list to be expanded
+             if (expanded == null) {
+                 break;
+             }
++
++//            Generating the descendants
+             for (Node successor:
+                     expanded.getNeighbours()) {
+ 
+                 if (isNotExplored(explored, successor) && !headFringe.contains(successor)
+                         && isViable(explored, successor)) {
+                     if (compare(successor, tailFringe)) {
++//                        If this descendant exist among the tail fringe nodes
++//                        creates a path and adds it to the set of paths
+                         paths.add(createPath(expanded, successor));
+                     }
+                     else {
++//                        If this descendant is not found among the tail fringe nodes
++//                        it's added to the fringe list to be expanded later
+                         successor.setAncestor(expanded);
+                         headFringe.add(successor);
+                     }
+@@ -106,18 +153,27 @@
+             }
+             explored.add(expanded);
+ 
++//            Moving ahead from the head side
+             expanded = tailFringe.poll();
++
++//            Search ends if there is no node left in the fringe list to be expanded
+             if (expanded == null)
+                 break;
++
++//            Generating the descendants
+             for (Node successor:
+                     expanded.getNeighbours()) {
+ 
+                 if (isViable(explored, successor) && !tailFringe.contains(successor)
+                         && isNotExplored(explored, successor)) {
+                     if (compare(successor, headFringe)) {
++//                        If this descendant exist among the head fringe nodes
++//                        creates a path and adds it to the set of paths
+                         paths.add(createPath(successor, expanded));
+                     }
+                     else {
++//                        If this descendant is not found among the head fringe nodes
++//                        it's added to the fringe list to be expanded later
+                         successor.setAncestor(expanded);
+                         tailFringe.add(successor);
+                     }
+@@ -126,6 +182,8 @@
+             explored.add(expanded);
+ 
+         }
++
++//        Choosing the optimum path among the found paths
+         Path finalPath = null;
+         for (Path path:
+              paths) {
+@@ -137,116 +195,18 @@
+         return finalPath;
+     }
+ 
++    @Override
+     public LinkedList<Node> search() {
+-
+-        LinkedList<Node> finalPath = new LinkedList<>();
+-        LinkedList<Node> partialPath;
+-        Node originalPlate;
+-        Node nextStartingPoint = environment.getStartingNode();
+-        int selectedButterPlate = 0, selectedGoal = 0;
+-        int partialPathSize;
+-
+-        while (environment.getButterPlates().size() > 0 && environment.getGoals().size() > 0) {
+-
+-            partialPathSize = Integer.MAX_VALUE;
+-            partialPath = new LinkedList<>();
+-
+-            for (int i = 0; i < environment.getButterPlates().size(); ++i) {
+-
+-                originalPlate = environment.getButterPlates().get(i);
+-
+-                for (int j = 0; j < environment.getGoals().size(); ++j) {
+-
+-                    for (Path path :
+-                            searchPlates(originalPlate, environment.getGoals().get(j))) {
+-
+-                        Node n1, n2;
+-                        LinkedList<Node> trialPath = new LinkedList<>();
+-                        n1 = path.pop();
+-                        n2 = path.pop();
+-
+-                        assert nextStartingPoint != null;
+-                        Path robotPath = searchRobot(nextStartingPoint, n1.getOppositeOf(n2));
+-                        if (robotPath == null)
+-                            continue;
+-
+-                        robotPath.pop();
+-                        while (robotPath.isNotEmpty())
+-                            trialPath.add(robotPath.pop());
+-
+-                        if (trialPath.size() > 0)
+-                            environment.setStartingNode(trialPath.peekLast());
+-
+-                        while (path.isNotEmpty()) {
+-
+-                            if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
+-                                robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
+-                                if (robotPath != null) {
+-                                    robotPath.pop();
+-
+-                                    while (robotPath.isNotEmpty())
+-                                        trialPath.add(robotPath.pop());
+-
+-                                    environment.setStartingNode(trialPath.peekLast());
+-                                }
+-                            }
+-                            trialPath.add(n1);
+-                            environment.setStartingNode(n1);
+-                            environment.getButterPlates().set(environment.getButterPlates().indexOf(n1), n2);
+-                            n1 = n2;
+-                            n2 = path.pop();
+-                        }
+-
+-                        if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
+-                            robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
+-                            if (robotPath != null) {
+-
+-                                robotPath.pop();
+-
+-                                while (robotPath.isNotEmpty())
+-                                    trialPath.add(robotPath.pop());
+-
+-                            }
+-                            environment.setStartingNode(trialPath.peekLast());
+-                        }
+-                        trialPath.add(n1);
+-
+-                        if (trialPath.size() < partialPathSize) {
+-                            partialPath = new LinkedList<>(trialPath);
+-                            partialPathSize = trialPath.size();
+-                            selectedButterPlate = i;
+-                            selectedGoal = j;
+-                        }
++        return super.search();
++    }
+ 
+-                        environment.getButterPlates().set(i, originalPlate);
+-                        environment.setStartingNode(nextStartingPoint);
+-                    }
+-
+-                }
+-            }
+-
+-            if (partialPath.size() == 0)
+-                return null;
+-
+-            finalPath.addAll(partialPath);
+-            nextStartingPoint = partialPath.peekLast();
+-            environment.getButterPlates().remove(selectedButterPlate);
+-            environment.getGoals().get(selectedGoal).setObstacle(true);
+-            environment.getGoals().remove(selectedGoal);
+-
+-        }
+-        return finalPath;
+-    }
+-
+-    private boolean compare(Node node, LinkedList<Node> fringe) {
+-        for (Node fringeNode:
+-             fringe) {
+-            if (fringeNode.equals(node))
+-                return true;
+-        }
+-        return false;
+-    }
+-
++    /**
++     * Creates a path by joining the two ends of the paths found by
++     * the two sides (head and tail) in BiBFS
++     * @param oneEnd The end of one paths
++     * @param theOtherEnd The end of the other path
++     * @return The overall path
++     */
+     private Path createPath(Node oneEnd, Node theOtherEnd) {
+         Path aux = new Path(theOtherEnd);
+         Path path = new Path(null);
+@@ -259,19 +219,4 @@
+         }
+         return path;
+     }
+-
+-    private boolean isViable(ArrayList<Node> explored, Node node) {
+-        if (node == null || node.isObstacle())
+-            return false;
+-        for (Node butterPlate:
+-             environment.getButterPlates()) {
+-            if (!explored.contains(butterPlate) && node.equals(butterPlate))
+-                return false;
+-        }
+-        return true;
+-    }
+-
+-    private boolean isNotExplored(ArrayList<Node> explored, Node node) {
+-        return !explored.contains(node);
+-    }
+ }
+Index: src/AS.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.ArrayList;\r\nimport java.util.LinkedList;\r\n\r\npublic class AS {\r\n\r\n    private final Environment environment;\r\n\r\n    public AS(Environment environment) {\r\n        this.environment = environment;\r\n    }\r\n\r\n    public ArrayList<Path> searchPlates(Node butterPlate, Node goal) {\r\n\r\n        environment.reset();\r\n\r\n        ArrayList<Node> explored = new ArrayList<>();\r\n        ArrayList<Path> paths = new ArrayList<>();\r\n        Heap fringe = new Heap(environment.getHeight() * environment.getWidth());\r\n        Node expanded;\r\n\r\n        butterPlate.setF(calculateH(butterPlate, goal));\r\n        fringe.add(butterPlate);\r\n\r\n        while (true) {\r\n\r\n            expanded = fringe.getTop();\r\n            if (expanded == null)\r\n                break;\r\n\r\n            for (Node successor:\r\n                    expanded.getNeighbours()) {\r\n\r\n\r\n                int successorF = expanded.getF() - calculateH(expanded, goal) +\r\n                        expanded.getExpense() + calculateH(successor, goal);\r\n\r\n                Node sought = fringe.contains(successor);\r\n                if (sought != null) {\r\n                    if (successorF < sought.getF()) {\r\n                        fringe.delete(sought);\r\n                        successor.setAncestor(expanded);\r\n                        successor.setF(successorF);\r\n                        fringe.add(successor);\r\n                    }\r\n                }\r\n                else if (isNotExplored(explored, successor) && isViable(explored, successor) &&\r\n                        isViable(explored, expanded.getOppositeOf(successor))) {\r\n                    successor.setAncestor(expanded);\r\n                    if (successor.equals(goal))\r\n                        paths.add(new Path(successor));\r\n                    else {\r\n                        successor.setF(successorF);\r\n                        fringe.add(successor);\r\n                    }\r\n                }\r\n            }\r\n            explored.add(expanded);\r\n\r\n        }\r\n        return paths;\r\n    }\r\n\r\n    public Path searchRobot(Node start, Node end) {\r\n\r\n        environment.reset();\r\n\r\n        ArrayList<Node> explored = new ArrayList<>();\r\n        Heap fringe = new Heap(environment.getHeight() * environment.getWidth());\r\n        Node expanded;\r\n\r\n        start.setAncestor(null);\r\n\r\n        start.setF(calculateH(start, end));\r\n        fringe.add(start);\r\n\r\n        while (true) {\r\n\r\n            expanded = fringe.getTop();\r\n\r\n            if (expanded == null)\r\n                return null;\r\n\r\n            if (expanded.equals(end))\r\n                return new Path(end);\r\n\r\n            for (Node successor:\r\n                    expanded.getNeighbours()) {\r\n\r\n                int successorF = expanded.getF() - calculateH(expanded, end) +\r\n                        expanded.getExpense() + calculateH(successor, end);\r\n\r\n                Node sought = fringe.contains(successor);\r\n                if (sought != null) {\r\n                    if (successorF < sought.getF()) {\r\n                        fringe.delete(sought);\r\n                        successor.setAncestor(expanded);\r\n                        successor.setF(successorF);\r\n                        fringe.add(successor);\r\n                    }\r\n                }\r\n                else if (isNotExplored(explored, successor) && isViable(explored, successor)) {\r\n                    successor.setAncestor(expanded);\r\n                    successor.setF(successorF);\r\n                    fringe.add(successor);\r\n                }\r\n            }\r\n            explored.add(expanded);\r\n\r\n        }\r\n    }\r\n\r\n    public LinkedList<Node> search() {\r\n\r\n        LinkedList<Node> finalPath = new LinkedList<>();\r\n        LinkedList<Node> partialPath;\r\n        Node originalPlate;\r\n        Node nextStartingPoint = environment.getStartingNode();\r\n        int selectedButterPlate = 0, selectedGoal = 0;\r\n        int partialPathSize;\r\n\r\n        while (environment.getButterPlates().size() > 0 && environment.getGoals().size() > 0) {\r\n\r\n            partialPathSize = Integer.MAX_VALUE;\r\n            partialPath = new LinkedList<>();\r\n\r\n            for (int i = 0; i < environment.getButterPlates().size(); ++i) {\r\n\r\n                originalPlate = environment.getButterPlates().get(i);\r\n\r\n                for (int j = 0; j < environment.getGoals().size(); ++j) {\r\n\r\n                    for (Path path :\r\n                            searchPlates(originalPlate, environment.getGoals().get(j))) {\r\n\r\n                        Node n1, n2;\r\n                        LinkedList<Node> trialPath = new LinkedList<>();\r\n                        n1 = path.pop();\r\n                        n2 = path.pop();\r\n\r\n                        assert nextStartingPoint != null;\r\n                        Path robotPath = searchRobot(nextStartingPoint, n1.getOppositeOf(n2));\r\n                        if (robotPath == null)\r\n                            continue;\r\n\r\n                        robotPath.pop();\r\n                        while (robotPath.isNotEmpty())\r\n                            trialPath.add(robotPath.pop());\r\n\r\n                        if (trialPath.size() > 0)\r\n                            environment.setStartingNode(trialPath.peekLast());\r\n\r\n                        while (path.isNotEmpty()) {\r\n\r\n                            if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {\r\n                                robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));\r\n                                if (robotPath != null) {\r\n\r\n                                    robotPath.pop();\r\n                                    while (robotPath.isNotEmpty())\r\n                                        trialPath.add(robotPath.pop());\r\n\r\n                                    environment.setStartingNode(trialPath.peekLast());\r\n                                }\r\n                            }\r\n                            trialPath.add(n1);\r\n                            environment.setStartingNode(n1);\r\n                            environment.getButterPlates().set(environment.getButterPlates().indexOf(n1), n2);\r\n                            n1 = n2;\r\n                            n2 = path.pop();\r\n                        }\r\n\r\n                        if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {\r\n                            robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));\r\n                            if (robotPath != null) {\r\n\r\n                                robotPath.pop();\r\n\r\n                                while (robotPath.isNotEmpty())\r\n                                    trialPath.add(robotPath.pop());\r\n\r\n                            }\r\n                            environment.setStartingNode(trialPath.peekLast());\r\n                        }\r\n                        trialPath.add(n1);\r\n\r\n                        if (trialPath.size() < partialPathSize) {\r\n                            partialPath = new LinkedList<>(trialPath);\r\n                            partialPathSize = trialPath.size();\r\n                            selectedButterPlate = i;\r\n                            selectedGoal = j;\r\n                        }\r\n\r\n                        environment.getButterPlates().set(i, originalPlate);\r\n                        environment.setStartingNode(nextStartingPoint);\r\n                    }\r\n\r\n                }\r\n            }\r\n\r\n            if (partialPath.size() == 0)\r\n                return null;\r\n\r\n            finalPath.addAll(partialPath);\r\n            nextStartingPoint = partialPath.peekLast();\r\n            environment.getButterPlates().remove(selectedButterPlate);\r\n            environment.getGoals().get(selectedGoal).setObstacle(true);\r\n            environment.getGoals().remove(selectedGoal);\r\n\r\n        }\r\n        return finalPath;\r\n    }\r\n\r\n    private int calculateH(Node current, Node Goal) {\r\n        return Math.abs(current.getX() - Goal.getX()) + Math.abs(current.getY() - Goal.getY());\r\n    }\r\n\r\n    private boolean compare(Node node, LinkedList<Node> fringe) {\r\n        for (Node fringeNode:\r\n                fringe) {\r\n            if (fringeNode.equals(node))\r\n                return true;\r\n        }\r\n        return false;\r\n    }\r\n\r\n    private Path createPath(Node oneEnd, Node theOtherEnd) {\r\n        Path aux = new Path(theOtherEnd);\r\n        Path path = new Path(null);\r\n        while (aux.isNotEmpty()) {\r\n            path.push(aux.pop());\r\n        }\r\n        while (oneEnd != null) {\r\n            path.push(oneEnd);\r\n            oneEnd = oneEnd.getAncestor();\r\n        }\r\n        return path;\r\n    }\r\n\r\n    private boolean isViable(ArrayList<Node> explored, Node node) {\r\n        if (node == null || node.isObstacle())\r\n            return false;\r\n        for (Node butterPlate:\r\n                environment.getButterPlates()) {\r\n            if (!explored.contains(butterPlate) && node.equals(butterPlate))\r\n                return false;\r\n        }\r\n        return true;\r\n    }\r\n\r\n    private boolean isNotExplored(ArrayList<Node> explored, Node node) {\r\n        return !explored.contains(node);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/AS.java b/src/AS.java
+--- a/src/AS.java	(revision 5a5792f46192993821407c24294cbb72aeae5073)
++++ b/src/AS.java	(date 1620734230897)
+@@ -1,39 +1,54 @@
+ import java.util.ArrayList;
+ import java.util.LinkedList;
+ 
+-public class AS {
+-
+-    private final Environment environment;
++/**
++ * Class AS performs a search to find the overall optimum path to
++ * get all butter plates to all goals through A* algorithm
++ */
++public class AS extends Search {
+ 
+     public AS(Environment environment) {
+-        this.environment = environment;
++        super(environment);
+     }
+ 
+-    public ArrayList<Path> searchPlates(Node butterPlate, Node goal) {
++    public ArrayList<Path> searchPlate(Node butterPlate, Node goal) {
+ 
++//        Resets the environment to remove all nodes' ancestors
+         environment.reset();
+ 
++//        The explored set
+         ArrayList<Node> explored = new ArrayList<>();
++//        The ArrayList of all possible paths, initially empty
+         ArrayList<Path> paths = new ArrayList<>();
++//        The fringe list
+         Heap fringe = new Heap(environment.getHeight() * environment.getWidth());
++//        Represents the last expanded node
+         Node expanded;
+ 
++//        Sets the objective function for the starting point
++//        and adds it to the fringe
+         butterPlate.setF(calculateH(butterPlate, goal));
+         fringe.add(butterPlate);
+ 
+         while (true) {
+ 
++//            Expands from fringe, the node with the minimum objective function
+             expanded = fringe.getTop();
++//            If nothing's left in the fringe, then search is over
+             if (expanded == null)
+                 break;
+ 
++//            Generating the descendants
+             for (Node successor:
+                     expanded.getNeighbours()) {
+ 
+-
++//                Setting the objective function for the current descendant
+                 int successorF = expanded.getF() - calculateH(expanded, goal) +
+                         expanded.getExpense() + calculateH(successor, goal);
+ 
++//                If this descendant is already in the fringe list, discards the node
++//                with higher value, otherwise if it's already explored, simply discards it
++//                and moves to the next descendant
+                 Node sought = fringe.contains(successor);
+                 if (sought != null) {
+                     if (successorF < sought.getF()) {
+@@ -62,33 +77,46 @@
+ 
+     public Path searchRobot(Node start, Node end) {
+ 
++//        Resets the environment to clear nodes' ancestors
+         environment.reset();
+ 
++//        The explored set
+         ArrayList<Node> explored = new ArrayList<>();
++//        The fringe list
+         Heap fringe = new Heap(environment.getHeight() * environment.getWidth());
++//        Represents the expanded node each time
+         Node expanded;
+ 
+-        start.setAncestor(null);
+-
++//        Sets the objective function for the starting point
++//        and adds it to the fringe
+         start.setF(calculateH(start, end));
+         fringe.add(start);
+ 
+         while (true) {
+ 
++//            Expands from fringe, the node with the minimum objective function
+             expanded = fringe.getTop();
+ 
++//            If nothing's left in the fringe, then search is over
+             if (expanded == null)
+                 return null;
+ 
++//            Checks if the expanded node equals the end, if true creates a path
++//            and returns it, as it's the shortest path
+             if (expanded.equals(end))
+                 return new Path(end);
+ 
++//            Generating the descendants
+             for (Node successor:
+                     expanded.getNeighbours()) {
+ 
++//                Setting the objective function for the current descendant
+                 int successorF = expanded.getF() - calculateH(expanded, end) +
+                         expanded.getExpense() + calculateH(successor, end);
+ 
++//                If this descendant is already in the fringe list, discards the node
++//                with higher value, otherwise if it's already explored, simply discards it
++//                and moves to the next descendant
+                 Node sought = fringe.contains(successor);
+                 if (sought != null) {
+                     if (successorF < sought.getF()) {
+@@ -110,144 +138,17 @@
+     }
+ 
+     public LinkedList<Node> search() {
+-
+-        LinkedList<Node> finalPath = new LinkedList<>();
+-        LinkedList<Node> partialPath;
+-        Node originalPlate;
+-        Node nextStartingPoint = environment.getStartingNode();
+-        int selectedButterPlate = 0, selectedGoal = 0;
+-        int partialPathSize;
+-
+-        while (environment.getButterPlates().size() > 0 && environment.getGoals().size() > 0) {
+-
+-            partialPathSize = Integer.MAX_VALUE;
+-            partialPath = new LinkedList<>();
+-
+-            for (int i = 0; i < environment.getButterPlates().size(); ++i) {
+-
+-                originalPlate = environment.getButterPlates().get(i);
+-
+-                for (int j = 0; j < environment.getGoals().size(); ++j) {
+-
+-                    for (Path path :
+-                            searchPlates(originalPlate, environment.getGoals().get(j))) {
+-
+-                        Node n1, n2;
+-                        LinkedList<Node> trialPath = new LinkedList<>();
+-                        n1 = path.pop();
+-                        n2 = path.pop();
+-
+-                        assert nextStartingPoint != null;
+-                        Path robotPath = searchRobot(nextStartingPoint, n1.getOppositeOf(n2));
+-                        if (robotPath == null)
+-                            continue;
+-
+-                        robotPath.pop();
+-                        while (robotPath.isNotEmpty())
+-                            trialPath.add(robotPath.pop());
+-
+-                        if (trialPath.size() > 0)
+-                            environment.setStartingNode(trialPath.peekLast());
+-
+-                        while (path.isNotEmpty()) {
+-
+-                            if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
+-                                robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
+-                                if (robotPath != null) {
+-
+-                                    robotPath.pop();
+-                                    while (robotPath.isNotEmpty())
+-                                        trialPath.add(robotPath.pop());
+-
+-                                    environment.setStartingNode(trialPath.peekLast());
+-                                }
+-                            }
+-                            trialPath.add(n1);
+-                            environment.setStartingNode(n1);
+-                            environment.getButterPlates().set(environment.getButterPlates().indexOf(n1), n2);
+-                            n1 = n2;
+-                            n2 = path.pop();
+-                        }
++        return super.search();
++    }
+ 
+-                        if (!n1.getOppositeOf(n2).equals(environment.getStartingNode())) {
+-                            robotPath = searchRobot(environment.getStartingNode(), n1.getOppositeOf(n2));
+-                            if (robotPath != null) {
+-
+-                                robotPath.pop();
+-
+-                                while (robotPath.isNotEmpty())
+-                                    trialPath.add(robotPath.pop());
+-
+-                            }
+-                            environment.setStartingNode(trialPath.peekLast());
+-                        }
+-                        trialPath.add(n1);
+-
+-                        if (trialPath.size() < partialPathSize) {
+-                            partialPath = new LinkedList<>(trialPath);
+-                            partialPathSize = trialPath.size();
+-                            selectedButterPlate = i;
+-                            selectedGoal = j;
+-                        }
+-
+-                        environment.getButterPlates().set(i, originalPlate);
+-                        environment.setStartingNode(nextStartingPoint);
+-                    }
+-
+-                }
+-            }
+-
+-            if (partialPath.size() == 0)
+-                return null;
+-
+-            finalPath.addAll(partialPath);
+-            nextStartingPoint = partialPath.peekLast();
+-            environment.getButterPlates().remove(selectedButterPlate);
+-            environment.getGoals().get(selectedGoal).setObstacle(true);
+-            environment.getGoals().remove(selectedGoal);
+-
+-        }
+-        return finalPath;
+-    }
+-
++    /**
++     * Calculates the heuristic function for the given node based
++     * on the given goal node
++     * @param current The node whose heuristic is to be calculated
++     * @param Goal The goal node
++     * @return The value of the current node heuristic
++     */
+     private int calculateH(Node current, Node Goal) {
+         return Math.abs(current.getX() - Goal.getX()) + Math.abs(current.getY() - Goal.getY());
+     }
+-
+-    private boolean compare(Node node, LinkedList<Node> fringe) {
+-        for (Node fringeNode:
+-                fringe) {
+-            if (fringeNode.equals(node))
+-                return true;
+-        }
+-        return false;
+-    }
+-
+-    private Path createPath(Node oneEnd, Node theOtherEnd) {
+-        Path aux = new Path(theOtherEnd);
+-        Path path = new Path(null);
+-        while (aux.isNotEmpty()) {
+-            path.push(aux.pop());
+-        }
+-        while (oneEnd != null) {
+-            path.push(oneEnd);
+-            oneEnd = oneEnd.getAncestor();
+-        }
+-        return path;
+-    }
+-
+-    private boolean isViable(ArrayList<Node> explored, Node node) {
+-        if (node == null || node.isObstacle())
+-            return false;
+-        for (Node butterPlate:
+-                environment.getButterPlates()) {
+-            if (!explored.contains(butterPlate) && node.equals(butterPlate))
+-                return false;
+-        }
+-        return true;
+-    }
+-
+-    private boolean isNotExplored(ArrayList<Node> explored, Node node) {
+-        return !explored.contains(node);
+-    }
+ }
+Index: src/Main.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.LinkedList;\r\nimport java.util.Scanner;\r\n\r\npublic class Main {\r\n\r\n    public static void main(String[] args) {\r\n        Scanner scanner = new Scanner(System.in);\r\n        Environment environment = new Environment(scanner.nextInt(), scanner.nextInt(), scanner);\r\n\r\n//        AS as = new AS(environment);\r\n//\r\n//        BiBFS biBFS = new BiBFS(environment);\r\n\r\n//        for (Path path:\r\n//                as.searchPlates(environment.getButterPlates().get(1), environment.getGoals().get(1))) {\r\n//            System.out.println(\"Path:\");\r\n//            while (path.isNotEmpty()) {\r\n//                Node node;\r\n//                node = path.pop();\r\n//                System.out.print(node.getX() + \",\" + node.getY() + \"      \");\r\n//            }\r\n//            System.out.println();\r\n//        }\r\n\r\n//        Path path = as.searchRobot(environment.getStartingNode(), environment.getBlock()[4][1]);\r\n//        while (path.isNotEmpty()) {\r\n//            Node node;\r\n//            node = path.pop();\r\n//            System.out.print(node.getX() + \",\" + node.getY() + \"      \");\r\n//        }\r\n\r\n//        Node n1 = environment.getStartingNode(), n2;\r\n//        LinkedList<Node> path = biBFS.search();\r\n//        if (path == null)\r\n//            System.out.println(\"Not Possible\");\r\n//        else {\r\n//            int cost = 0;\r\n//            int depth = path.size();\r\n//            n2 = path.pollFirst();\r\n//            while (n2 != null) {\r\n//                System.out.print(n1.relativeDirectionOf(n2) + \"    \");\r\n//                cost += 1;\r\n//                n1 = n2;\r\n//                n2 = path.pollFirst();\r\n//            }\r\n//            System.out.println();\r\n//            System.out.println(cost);\r\n//            System.out.println(depth);\r\n//        }\r\n\r\n//        Node n1 = environment.getStartingNode(), n2;\r\n//        LinkedList<Node> path = as.search();\r\n//        if (path == null)\r\n//            System.out.println(\"Not Possible\");\r\n//        else {\r\n//            int cost = 0;\r\n//            int depth = path.size();\r\n//            n2 = path.pollFirst();\r\n//            while (n2 != null) {\r\n//                System.out.print(n1.relativeDirectionOf(n2) + \"    \");\r\n//                cost += n1.getExpense();\r\n//                n1 = n2;\r\n//                n2 = path.pollFirst();\r\n//            }\r\n//            System.out.println();\r\n//            System.out.println(cost);\r\n//            System.out.println(depth);\r\n//        }\r\n\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Main.java b/src/Main.java
+--- a/src/Main.java	(revision 5a5792f46192993821407c24294cbb72aeae5073)
++++ b/src/Main.java	(date 1620734315587)
+@@ -1,4 +1,3 @@
+-import java.util.LinkedList;
+ import java.util.Scanner;
+ 
+ public class Main {
+@@ -7,65 +6,14 @@
+         Scanner scanner = new Scanner(System.in);
+         Environment environment = new Environment(scanner.nextInt(), scanner.nextInt(), scanner);
+ 
+-//        AS as = new AS(environment);
++        AS as = new AS(environment);
+ //
+-//        BiBFS biBFS = new BiBFS(environment);
+-
+-//        for (Path path:
+-//                as.searchPlates(environment.getButterPlates().get(1), environment.getGoals().get(1))) {
+-//            System.out.println("Path:");
+-//            while (path.isNotEmpty()) {
+-//                Node node;
+-//                node = path.pop();
+-//                System.out.print(node.getX() + "," + node.getY() + "      ");
+-//            }
+-//            System.out.println();
+-//        }
++        BiBFS biBFS = new BiBFS(environment);
+ 
+-//        Path path = as.searchRobot(environment.getStartingNode(), environment.getBlock()[4][1]);
+-//        while (path.isNotEmpty()) {
+-//            Node node;
+-//            node = path.pop();
+-//            System.out.print(node.getX() + "," + node.getY() + "      ");
+-//        }
++        Display screen = new Display(environment);
++//        screen.putResults(as.search());
+ 
+-//        Node n1 = environment.getStartingNode(), n2;
+-//        LinkedList<Node> path = biBFS.search();
+-//        if (path == null)
+-//            System.out.println("Not Possible");
+-//        else {
+-//            int cost = 0;
+-//            int depth = path.size();
+-//            n2 = path.pollFirst();
+-//            while (n2 != null) {
+-//                System.out.print(n1.relativeDirectionOf(n2) + "    ");
+-//                cost += 1;
+-//                n1 = n2;
+-//                n2 = path.pollFirst();
+-//            }
+-//            System.out.println();
+-//            System.out.println(cost);
+-//            System.out.println(depth);
+-//        }
+-
+-//        Node n1 = environment.getStartingNode(), n2;
+-//        LinkedList<Node> path = as.search();
+-//        if (path == null)
+-//            System.out.println("Not Possible");
+-//        else {
+-//            int cost = 0;
+-//            int depth = path.size();
+-//            n2 = path.pollFirst();
+-//            while (n2 != null) {
+-//                System.out.print(n1.relativeDirectionOf(n2) + "    ");
+-//                cost += n1.getExpense();
+-//                n1 = n2;
+-//                n2 = path.pollFirst();
+-//            }
+-//            System.out.println();
+-//            System.out.println(cost);
+-//            System.out.println(depth);
+-//        }
++        screen.putResults(biBFS.search());
+ 
+     }
+ }
+Index: src/Heap.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.HashMap;\r\n\r\npublic class Heap {\r\n\r\n    private final Node[] nodes;\r\n\r\n    private int size;\r\n    private final HashMap<Node, Integer> indices;\r\n\r\n    public Heap(int n) {\r\n        nodes = new Node[n];\r\n        size = 0;\r\n        indices = new HashMap<>();\r\n    }\r\n\r\n    public Node getTop() {\r\n        if (size == 0)\r\n            return null;\r\n        Node top = nodes[0];\r\n        delete(nodes[0]);\r\n        return top;\r\n    }\r\n\r\n    public void add(Node newNode) {\r\n        nodes[size] = newNode;\r\n        indices.put(nodes[size], size);\r\n        sortUp(size);\r\n        ++size;\r\n    }\r\n\r\n    public void delete(Node poorNode) {\r\n        int index = indices.get(poorNode);\r\n        Node inter = nodes[index];\r\n        nodes[index] = nodes[size - 1];\r\n        nodes[size - 1] = inter;\r\n        indices.put(nodes[index], index);\r\n        indices.put(nodes[size - 1], size - 1);\r\n        --size;\r\n        if((index + 1) / 2 - 1 >= 0 && nodes[index].getF() < nodes[(index + 1) / 2 - 1].getF()) {\r\n            sortUp(index);\r\n        }\r\n        else {\r\n            sortDown(index);\r\n        }\r\n    }\r\n\r\n    private void sortUp(int index) {\r\n        while ((index + 1) / 2 - 1 >= 0 && nodes[index].getF() < nodes[(index + 1) / 2 - 1].getF()) {\r\n            Node inter = nodes[index];\r\n            nodes[index] = nodes[(index + 1) / 2 - 1];\r\n            nodes[(index + 1) / 2 - 1] = inter;\r\n            indices.put(nodes[index], index);\r\n            indices.put(nodes[(index + 1) / 2 - 1], (index + 1) / 2 - 1);\r\n            index = (index + 1) / 2 - 1;\r\n        }\r\n    }\r\n\r\n    private void sortDown(int index) {\r\n        int left = (index + 1) * 2 - 1;\r\n        int right = (index + 1) * 2;\r\n        int smallest = index;\r\n        if(left < size && nodes[smallest].getF() > nodes[left].getF())\r\n            smallest = left;\r\n        if(right < size && nodes[smallest].getF() > nodes[right].getF())\r\n            smallest = right;\r\n        if(smallest != index) {\r\n            Node inter = nodes[index];\r\n            nodes[index] = nodes[smallest];\r\n            nodes[smallest] = inter;\r\n            indices.put(nodes[index], index);\r\n            indices.put(nodes[smallest], smallest);\r\n            sortDown(smallest);\r\n        }\r\n    }\r\n\r\n    public Node contains(Node sought) {\r\n        for (int i = 0; i < size; ++i) {\r\n            if (sought.equals(nodes[i]))\r\n                return nodes[i];\r\n        }\r\n        return null;\r\n    }\r\n\r\n//    public void resetNodes() {\r\n//        size = indices.size();\r\n//        for (Node node :\r\n//                nodes) {\r\n//            node.setVisited(false);\r\n//        }\r\n//    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Heap.java b/src/Heap.java
+--- a/src/Heap.java	(revision 5a5792f46192993821407c24294cbb72aeae5073)
++++ b/src/Heap.java	(date 1620668108665)
+@@ -1,18 +1,32 @@
+ import java.util.HashMap;
+ 
++/**
++ * Class Heap is used to sort the fringe list in A* search method in
++ * falling order. It creates a min heap and takes advantage of the high
++ * sorting speed.
++ */
+ public class Heap {
+ 
++//    Array of nodes to sort
+     private final Node[] nodes;
+-
++//    Heap size
+     private int size;
++//    HashMap to store each node index in the original array
+     private final HashMap<Node, Integer> indices;
+ 
++    /**
++     * Instantiates this class
++     * @param n initial size of the array storing nodes
++     */
+     public Heap(int n) {
+         nodes = new Node[n];
+         size = 0;
+         indices = new HashMap<>();
+     }
+ 
++    /**
++     * @return The top element (the minimum of all nodes)
++     */
+     public Node getTop() {
+         if (size == 0)
+             return null;
+@@ -21,6 +35,10 @@
+         return top;
+     }
+ 
++    /**
++     * Adds a new node to the heap
++     * @param newNode New node to be added
++     */
+     public void add(Node newNode) {
+         nodes[size] = newNode;
+         indices.put(nodes[size], size);
+@@ -28,6 +46,10 @@
+         ++size;
+     }
+ 
++    /**
++     * Deletes a node anywhere in the heap
++     * @param poorNode The node to be deleted
++     */
+     public void delete(Node poorNode) {
+         int index = indices.get(poorNode);
+         Node inter = nodes[index];
+@@ -44,6 +66,10 @@
+         }
+     }
+ 
++    /**
++     * Starts sorting the heap from a specific index up to the top element
++     * @param index The starting index
++     */
+     private void sortUp(int index) {
+         while ((index + 1) / 2 - 1 >= 0 && nodes[index].getF() < nodes[(index + 1) / 2 - 1].getF()) {
+             Node inter = nodes[index];
+@@ -55,6 +81,10 @@
+         }
+     }
+ 
++    /**
++     * Starts sorting the heap from a specific element down to a leaf
++     * @param index The starting index
++     */
+     private void sortDown(int index) {
+         int left = (index + 1) * 2 - 1;
+         int right = (index + 1) * 2;
+@@ -73,6 +103,11 @@
+         }
+     }
+ 
++    /**
++     * Checks if a specific node exists in the heap
++     * @param sought The searched element
++     * @return True if sought is inside the heap
++     */
+     public Node contains(Node sought) {
+         for (int i = 0; i < size; ++i) {
+             if (sought.equals(nodes[i]))
+@@ -80,12 +115,4 @@
+         }
+         return null;
+     }
+-
+-//    public void resetNodes() {
+-//        size = indices.size();
+-//        for (Node node :
+-//                nodes) {
+-//            node.setVisited(false);
+-//        }
+-//    }
+ }
+Index: src/Path.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.Stack;\r\n\r\npublic class Path {\r\n\r\n    private Stack<Node> path;\r\n\r\n    public Path(Node end) {\r\n        path = new Stack<>();\r\n        while (end != null) {\r\n            path.push(end);\r\n            end = end.getAncestor();\r\n        }\r\n    }\r\n\r\n    public void push(Node newNode) {\r\n        path.push(newNode);\r\n    }\r\n\r\n    public boolean isNotEmpty() {\r\n        return !path.isEmpty();\r\n    }\r\n\r\n    public Node pop() {\r\n        return path.pop();\r\n    }\r\n\r\n    public int getSize() {\r\n        return path.size();\r\n    }\r\n\r\n    @Override\r\n    public String toString() {\r\n        StringBuilder stringBuilder = new StringBuilder();\r\n        while(isNotEmpty())\r\n            stringBuilder.append(path.pop()).append(\"    \");\r\n        return stringBuilder.toString();\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Path.java b/src/Path.java
+--- a/src/Path.java	(revision 5a5792f46192993821407c24294cbb72aeae5073)
++++ b/src/Path.java	(date 1620674699346)
+@@ -1,9 +1,17 @@
+ import java.util.Stack;
+ 
++/**
++ * Class path represents a viable path between two nodes
++ */
+ public class Path {
+ 
+-    private Stack<Node> path;
++//    The stack storing nodes of this path
++    private final Stack<Node> path;
+ 
++    /**
++     * Instantiates this class
++     * @param end The end of the path
++     */
+     public Path(Node end) {
+         path = new Stack<>();
+         while (end != null) {
+@@ -12,22 +20,40 @@
+         }
+     }
+ 
++    /**
++     * Pushes a node to the top of the path stack
++     * @param newNode The new node
++     */
+     public void push(Node newNode) {
+         path.push(newNode);
+     }
+ 
++    /**
++     * @return True if this path has at least on node
++     */
+     public boolean isNotEmpty() {
+         return !path.isEmpty();
+     }
+ 
++    /**
++     * Pops a node from the path stack
++     * @return The popped node
++     */
+     public Node pop() {
+         return path.pop();
+     }
+ 
++    /**
++     * @return The size of this path
++     */
+     public int getSize() {
+         return path.size();
+     }
+ 
++    /**
++     * Offers a string representation of nodes of this path
++     * @return String depicting this path's nodes' coordinates
++     */
+     @Override
+     public String toString() {
+         StringBuilder stringBuilder = new StringBuilder();
+Index: src/Node.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.ArrayList;\r\nimport java.util.Objects;\r\n\r\npublic class Node {\r\n\r\n    private final int xCoordinate;\r\n    private final int yCoordinate;\r\n    private int expense;\r\n    private Node ancestor;\r\n    private Node east;\r\n    private Node north;\r\n    private Node west;\r\n    private Node south;\r\n    private boolean obstacle;\r\n    private int depth;\r\n    private int f;\r\n\r\n    public Node(int x, int y) {\r\n        xCoordinate = x;\r\n        yCoordinate = y;\r\n        expense = 0;\r\n        ancestor = null;\r\n        east = null;\r\n        north = null;\r\n        west = null;\r\n        south = null;\r\n        obstacle = false;\r\n        depth = 0;\r\n    }\r\n\r\n    public void setEast(Node east) {\r\n        this.east = east;\r\n    }\r\n\r\n    public void setNorth(Node north) {\r\n        this.north = north;\r\n    }\r\n\r\n    public void setWest(Node west) {\r\n        this.west = west;\r\n    }\r\n\r\n    public void setSouth(Node south) {\r\n        this.south = south;\r\n    }\r\n\r\n    public void setAncestor(Node ancestor) {\r\n        this.ancestor = ancestor;\r\n    }\r\n\r\n    public void setExpense(int expense) {\r\n        this.expense = expense;\r\n    }\r\n\r\n    public void setObstacle(boolean obstacle) {\r\n        this.obstacle = obstacle;\r\n    }\r\n\r\n    public void setF(int f) {\r\n        this.f = f;\r\n    }\r\n\r\n    public Node getAncestor() {\r\n        return ancestor;\r\n    }\r\n\r\n    public int getX() {\r\n        return xCoordinate;\r\n    }\r\n\r\n    public int getY() {\r\n        return yCoordinate;\r\n    }\r\n\r\n    public int getExpense() {\r\n        return expense;\r\n    }\r\n\r\n    public Node getEast() {\r\n        return east;\r\n    }\r\n\r\n    public Node getWest() {\r\n        return west;\r\n    }\r\n\r\n    public Node getNorth() {\r\n        return north;\r\n    }\r\n\r\n    public Node getSouth() {\r\n        return south;\r\n    }\r\n\r\n    public int getF() {\r\n        return f;\r\n    }\r\n\r\n    public void setDepth(int depth) {\r\n        this.depth = depth;\r\n    }\r\n\r\n    public int getDepth() {\r\n        return depth;\r\n    }\r\n\r\n    public Node getOppositeOf(Node node) {\r\n        if (node.equals(east))\r\n            return west;\r\n        if (node.equals(north))\r\n            return south;\r\n        if (node.equals(west))\r\n            return east;\r\n        return north;\r\n    }\r\n\r\n    public ArrayList<Node> getNeighbours() {\r\n        ArrayList<Node> neighbours = new ArrayList<>();\r\n        if (east != null && !east.isObstacle())\r\n            neighbours.add(east);\r\n        if (north != null && !north.isObstacle())\r\n            neighbours.add(north);\r\n        if (west != null && !west.isObstacle())\r\n            neighbours.add(west);\r\n        if (south != null && !south.isObstacle())\r\n            neighbours.add(south);\r\n        return neighbours;\r\n    }\r\n\r\n    public String relativeDirectionOf(Node node) {\r\n        if (node.equals(east)) return \"R\";\r\n        if (node.equals(north)) return \"U\";\r\n        if (node.equals(west)) return \"L\";\r\n        if (node.equals(south)) return \"D\";\r\n        return \"NA\";\r\n    }\r\n\r\n    public boolean isObstacle() {\r\n        return obstacle;\r\n    }\r\n\r\n    @Override\r\n    public boolean equals(Object o) {\r\n        if (this == o) return true;\r\n        if (o == null || getClass() != o.getClass()) return false;\r\n        Node node = (Node) o;\r\n        return xCoordinate == node.xCoordinate && yCoordinate == node.yCoordinate;\r\n    }\r\n\r\n    @Override\r\n    public int hashCode() {\r\n        return Objects.hash(xCoordinate, yCoordinate);\r\n    }\r\n\r\n    @Override\r\n    public String toString() {\r\n        return  xCoordinate +\r\n                \",\" + yCoordinate;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Node.java b/src/Node.java
+--- a/src/Node.java	(revision 5a5792f46192993821407c24294cbb72aeae5073)
++++ b/src/Node.java	(date 1620679654186)
+@@ -1,20 +1,34 @@
+ import java.util.ArrayList;
+ import java.util.Objects;
+ 
++/**
++ * Class Node represents a node (a place on the desk)
++ */
+ public class Node {
+ 
++//    Coordinates of this node
+     private final int xCoordinate;
+     private final int yCoordinate;
++//    Cost passing this node
+     private int expense;
++//    This node's father!
+     private Node ancestor;
++//    This node's neighbours
+     private Node east;
+     private Node north;
+     private Node west;
+     private Node south;
++//    Boolean determining if this node's an obstacle
+     private boolean obstacle;
+     private int depth;
++//    The value of the objective function for this node
+     private int f;
+ 
++    /**
++     * Instantiates this node
++     * @param x The x coordinate of this node
++     * @param y The y coordinate of this node
++     */
+     public Node(int x, int y) {
+         xCoordinate = x;
+         yCoordinate = y;
+@@ -28,82 +42,124 @@
+         depth = 0;
+     }
+ 
++    /**
++     * Sets the east neighbour of this node
++     * @param east The east node
++     */
+     public void setEast(Node east) {
+         this.east = east;
+     }
+ 
++    /**
++     * Sets the north neighbour of this node
++     * @param north The north node
++     */
+     public void setNorth(Node north) {
+         this.north = north;
+     }
+ 
++    /**
++     * Sets the west neighbour of this node
++     * @param west The west node
++     */
+     public void setWest(Node west) {
+         this.west = west;
+     }
+ 
++    /**
++     * Sets the south neighbour of this node
++     * @param south The south node
++     */
+     public void setSouth(Node south) {
+         this.south = south;
+     }
+ 
++    /**
++     * Sets the father of this node
++     * @param ancestor The father node
++     */
+     public void setAncestor(Node ancestor) {
+         this.ancestor = ancestor;
+     }
+ 
++    /**
++     * Sets the expense for passing this node
++     * @param expense The expense
++     */
+     public void setExpense(int expense) {
+         this.expense = expense;
+     }
+ 
++    /**
++     * Sets obstacle state of this node
++     * @param obstacle Boolean determining the obstacle state of this node
++     */
+     public void setObstacle(boolean obstacle) {
+         this.obstacle = obstacle;
+     }
+ 
++    /**
++     * Sets the objective function for this node
++     * @param f The objective function for this node
++     */
+     public void setF(int f) {
+         this.f = f;
+     }
+ 
++    /**
++     * @return The father of this node
++     */
+     public Node getAncestor() {
+         return ancestor;
+     }
+ 
++    /**
++     * @return x coordinate of this node
++     */
+     public int getX() {
+         return xCoordinate;
+     }
+ 
++    /**
++     * @return y coordinate of this node
++     */
+     public int getY() {
+         return yCoordinate;
+     }
+ 
++    /**
++     * @return the expense of passing this node
++     */
+     public int getExpense() {
+         return expense;
+     }
+ 
+-    public Node getEast() {
+-        return east;
+-    }
+-
+-    public Node getWest() {
+-        return west;
+-    }
+-
+-    public Node getNorth() {
+-        return north;
+-    }
+-
+-    public Node getSouth() {
+-        return south;
+-    }
+-
++    /**
++     * @return The value of the objective function for this node
++     */
+     public int getF() {
+         return f;
+     }
+ 
++    /**
++     * Sets this node's depth while performing search
++     * @param depth The search depth
++     */
+     public void setDepth(int depth) {
+         this.depth = depth;
+     }
+ 
++    /**
++     * @return The depth of this node
++     */
+     public int getDepth() {
+         return depth;
+     }
+ 
++    /**
++     * This method returns the opposite node to the given node with respect to this node
++     * @return The opposite-sided node
++     */
+     public Node getOppositeOf(Node node) {
+         if (node.equals(east))
+             return west;
+@@ -114,6 +170,9 @@
+         return north;
+     }
+ 
++    /**
++     * @return An ArrayList containing the non-obstacle neighbours of this node
++     */
+     public ArrayList<Node> getNeighbours() {
+         ArrayList<Node> neighbours = new ArrayList<>();
+         if (east != null && !east.isObstacle())
+@@ -127,6 +186,12 @@
+         return neighbours;
+     }
+ 
++    /**
++     * Returns the direction to which the given node resides with regard
++     * to this node
++     * @param node The given node
++     * @return String representing the direction
++     */
+     public String relativeDirectionOf(Node node) {
+         if (node.equals(east)) return "R";
+         if (node.equals(north)) return "U";
+@@ -135,10 +200,18 @@
+         return "NA";
+     }
+ 
++    /**
++     * @return True if this node is an obstacle
++     */
+     public boolean isObstacle() {
+         return obstacle;
+     }
+ 
++    /**
++     * Checks if the given object is actually this node
++     * @param o The given object to be compared
++     * @return True if o is of type Node and has the same coordinates as this node
++     */
+     @Override
+     public boolean equals(Object o) {
+         if (this == o) return true;
+@@ -152,6 +225,9 @@
+         return Objects.hash(xCoordinate, yCoordinate);
+     }
+ 
++    /**
++     * @return A String representation of this node including its coordinates
++     */
+     @Override
+     public String toString() {
+         return  xCoordinate +
+Index: src/Environment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.ArrayList;\r\nimport java.util.Scanner;\r\n\r\npublic class Environment {\r\n\r\n    private Node[][] block;\r\n    private Node startingNode;\r\n    private ArrayList<Node> goals;\r\n    private ArrayList<Node> butterPlates;\r\n    private final int height, width;\r\n\r\n    public Environment(int height, int width, Scanner scanner) {\r\n        this.height = height;\r\n        this.width = width;\r\n        block = new Node[height][width];\r\n        goals = new ArrayList<>();\r\n        butterPlates = new ArrayList<>();\r\n        setNodesArray(height, width, scanner);\r\n        setUpGraph(height, width);\r\n    }\r\n\r\n    private void setNodesArray(int height, int width, Scanner scanner) {\r\n        for (int i = 0; i < height; i++) {\r\n            for (int j = 0; j < width; j++) {\r\n                Node newNode = new Node(j, i);\r\n                String position = scanner.next();\r\n                if (position.equals(\"x\")) {\r\n                    newNode.setObstacle(true);\r\n                }\r\n                else {\r\n                    char c = position.charAt(position.length() - 1);\r\n                    switch (c) {\r\n                        case 'r' -> startingNode = newNode;\r\n                        case 'b' -> butterPlates.add(newNode);\r\n                        case 'p' -> goals.add(newNode);\r\n                    }\r\n                    int expense;\r\n                    if(c == 'b' || c == 'p' || c == 'r') {\r\n                        expense = Integer.parseInt(position.substring(0, position.length() - 1));\r\n                    } else {\r\n                        expense = Integer.parseInt(position);\r\n                    }\r\n                    newNode.setExpense(expense);\r\n                }\r\n                block[i][j] = newNode;\r\n            }\r\n        }\r\n    }\r\n\r\n    private void setUpGraph(int height, int width) {\r\n        for (int i = 0; i < height; i++) {\r\n            for (int j = 0; j < width; j++) {\r\n                if(j + 1 < width)\r\n                    block[i][j].setEast(block[i][j + 1]);\r\n                if(i - 1 >= 0)\r\n                    block[i][j].setNorth(block[i - 1][j]);\r\n                if(j - 1 >= 0)\r\n                    block[i][j].setWest(block[i][j - 1]);\r\n                if(i + 1 < height)\r\n                    block[i][j].setSouth(block[i + 1][j]);\r\n            }\r\n        }\r\n    }\r\n\r\n    public void reset() {\r\n        for (Node[] row:\r\n             block) {\r\n            for (Node node:\r\n                 row) {\r\n                node.setAncestor(null);\r\n            }\r\n        }\r\n    }\r\n\r\n    public void setStartingNode(Node startingNode) {\r\n        this.startingNode = startingNode;\r\n    }\r\n\r\n    public Node getStartingNode() {\r\n        return startingNode;\r\n    }\r\n\r\n    public ArrayList<Node> getButterPlates() {\r\n        return butterPlates;\r\n    }\r\n\r\n    public ArrayList<Node> getGoals() {\r\n        return goals;\r\n    }\r\n\r\n    public int getHeight() {\r\n        return height;\r\n    }\r\n\r\n    public int getWidth() {\r\n        return width;\r\n    }\r\n\r\n    public Node[][] getBlock() {\r\n        return block;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Environment.java b/src/Environment.java
+--- a/src/Environment.java	(revision 5a5792f46192993821407c24294cbb72aeae5073)
++++ b/src/Environment.java	(date 1620679654175)
+@@ -1,14 +1,28 @@
+ import java.util.ArrayList;
+ import java.util.Scanner;
+ 
++/**
++ * Class Environment represents the search space (desk)
++ */
+ public class Environment {
+ 
+-    private Node[][] block;
++//    A 2D array representation of the desk nodes
++    private final Node[][] block;
++//    Where robot is initially standing
+     private Node startingNode;
+-    private ArrayList<Node> goals;
+-    private ArrayList<Node> butterPlates;
++//    The set of goals waiting for butter!
++    private final ArrayList<Node> goals;
++//    The set of butter plates on the desk
++    private final ArrayList<Node> butterPlates;
++//    The width and height of this desk
+     private final int height, width;
+ 
++    /**
++     * Instantiates this class
++     * @param height The height of the desk
++     * @param width The width of the desk
++     * @param scanner A Scanner object to read input
++     */
+     public Environment(int height, int width, Scanner scanner) {
+         this.height = height;
+         this.width = width;
+@@ -19,6 +33,12 @@
+         setUpGraph(height, width);
+     }
+ 
++    /**
++     * Sets up "block"
++     * @param height The height of the desk
++     * @param width The width of the desk
++     * @param scanner A Scanner object to read input
++     */
+     private void setNodesArray(int height, int width, Scanner scanner) {
+         for (int i = 0; i < height; i++) {
+             for (int j = 0; j < width; j++) {
+@@ -47,6 +67,12 @@
+         }
+     }
+ 
++    /**
++     * Sets up the graph representation of this desk by connecting the
++     * nodes together
++     * @param height The height of the desk
++     * @param width The width of the desk
++     */
+     private void setUpGraph(int height, int width) {
+         for (int i = 0; i < height; i++) {
+             for (int j = 0; j < width; j++) {
+@@ -62,6 +88,9 @@
+         }
+     }
+ 
++    /**
++     * Sets all nodes' ancestors to "null"
++     */
+     public void reset() {
+         for (Node[] row:
+              block) {
+@@ -72,30 +101,52 @@
+         }
+     }
+ 
++    /**
++     * Sets the starting point for the agent
++     * @param startingNode Where the robot starts
++     */
+     public void setStartingNode(Node startingNode) {
+         this.startingNode = startingNode;
+     }
+ 
++    /**
++     * @return The robot's location
++     */
+     public Node getStartingNode() {
+         return startingNode;
+     }
+ 
++    /**
++     * @return The butter plate node
++     */
+     public ArrayList<Node> getButterPlates() {
+         return butterPlates;
+     }
+ 
++    /**
++     * @return The goal node
++     */
+     public ArrayList<Node> getGoals() {
+         return goals;
+     }
+ 
++    /**
++     * @return The height of the environment
++     */
+     public int getHeight() {
+         return height;
+     }
+ 
++    /**
++     * @return The height of the environment
++     */
+     public int getWidth() {
+         return width;
+     }
+ 
++    /**
++     * @return The whole array representation of the environment
++     */
+     public Node[][] getBlock() {
+         return block;
+     }
+Index: src/Display.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Display.java b/src/Display.java
+new file mode 100644
+--- /dev/null	(date 1620679993189)
++++ b/src/Display.java	(date 1620679993189)
+@@ -0,0 +1,201 @@
++import javax.swing.*;
++import java.awt.*;
++import java.awt.event.MouseAdapter;
++import java.awt.event.MouseEvent;
++import java.util.ArrayList;
++import java.util.LinkedList;
++import static java.awt.Font.*;
++
++/**
++ * This class is used to display the robot path graphically.
++ * To use this class, instantiate it, pass the
++ * LinkedList of the robot path to the "putResults" method, and you get the window flip
++ * open. Click on "NEXT" to gradually traverse the path.
++ */
++public class Display extends JFrame {
++
++    private final Environment environment;
++    private Node robot;
++    private final ArrayList<Node> butterPlates;
++    private final ArrayList<Node> goals;
++    private JLabel nextButton;
++    private JLabel depthLabel;
++    private JLabel costLabel;
++    private JTextArea path;
++    private LinkedList<Node> robotPath;
++    private int cost;
++    private int depth;
++    private int pathAreaCounter;
++    private final int blockSize;
++    private final MouseHandler mouseHandler;
++
++    /**
++     * Instantiates this class
++     * @param environment The environment (desk)
++     */
++    public Display(Environment environment) {
++
++        mouseHandler = new MouseHandler();
++        setUpFrame();
++        this.environment = environment;
++        robot = environment.getBlock()[environment.getStartingNode().getY()][environment.getStartingNode().getX()];
++        butterPlates = new ArrayList<>();
++        goals = new ArrayList<>();
++        for (Node butter:
++                environment.getButterPlates()) {
++            butterPlates.add(environment.getBlock()[butter.getY()][butter.getX()]);
++        }
++        for (Node goal:
++                environment.getGoals()) {
++            goals.add(environment.getBlock()[goal.getY()][goal.getX()]);
++        }
++        cost = 0;
++        blockSize = 600 / Math.max(environment.getHeight(), environment.getWidth());
++        pathAreaCounter = 0;
++    }
++
++    /**
++     * Creates the display window
++     */
++    private void setUpFrame() {
++        this.setSize(1280, 720);
++        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
++        this.setLayout(new BorderLayout());
++        nextButton = new JLabel("NEXT");
++        nextButton.addMouseListener(mouseHandler);
++        depthLabel = new JLabel();
++        costLabel = new JLabel();
++        path = new JTextArea();
++        path.setEnabled(false);
++        path.setDisabledTextColor(Color.BLACK);
++        path.setOpaque(false);
++        path.setFont(new Font("", BOLD, 13));
++        path.setPreferredSize(new Dimension(300, 200));
++        JPanel panel = new JPanel(new GridBagLayout());
++        panel.setPreferredSize(new Dimension(400, 720));
++        GridBagConstraints constraints = new GridBagConstraints();
++        panel.add(nextButton, constraints);
++        constraints.gridy = 1;
++        panel.add(path, constraints);
++        constraints.gridy = 2;
++        panel.add(costLabel, constraints);
++        constraints.gridy = 3;
++        panel.add(depthLabel, constraints);
++        this.add(panel, BorderLayout.EAST);
++    }
++
++    /**
++     * This method is called to display the path.
++     * @param robotPath The LinkedList representing the path.
++     */
++    public void putResults(LinkedList<Node> robotPath) {
++        this.robotPath = robotPath;
++        this.setVisible(true);
++    }
++
++    /**
++     * Creates the graphical images
++     * @param g The drawer of the images
++     */
++    private void display(Graphics g) {
++        Graphics2D g2D = (Graphics2D) g;
++        g2D.setFont(new Font("", BOLD, 16));
++        for (int i = 0; i < environment.getHeight(); ++i) {
++            for (int j = 0; j < environment.getWidth(); ++j) {
++                if (robot.getX() == j && robot.getY() == i) {
++                    g2D.drawImage(new ImageIcon("Pics\\Robot Place.png").getImage(),
++                            100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
++                    g2D.drawString(robot.getExpense() + "", 110 + j * blockSize, 90 + i * blockSize);
++                }
++                else {
++                    boolean isThere = false;
++                    for (Node butter:
++                            butterPlates) {
++                        if (butter.getX() == j && butter.getY() == i) {
++                            isThere = true;
++                            break;
++                        }
++                    }
++                    if (isThere) {
++                        g2D.drawImage(new ImageIcon("Pics\\Butter Plate.png").getImage(),
++                                100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
++                        g2D.drawString(environment.getBlock()[i][j].getExpense() + "", 110 + j * blockSize, 90 + i * blockSize);
++                        continue;
++                    }
++                    for (Node goal:
++                            goals) {
++                        if (goal.getX() == j && goal.getY() == i) {
++                            isThere = true;
++                            break;
++                        }
++                    }
++                    if (isThere) {
++                        g2D.drawImage(new ImageIcon("Pics\\Goal.png").getImage(),
++                                100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
++                        g2D.drawString(environment.getBlock()[i][j].getExpense() + "", 110 + j * blockSize, 90 + i * blockSize);
++                        continue;
++                    }
++                    if (environment.getBlock()[i][j].isObstacle()) {
++                        g2D.drawImage(new ImageIcon("Pics\\Obstacle.png").getImage(),
++                                100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
++                        continue;
++                    }
++                    g2D.drawImage(new ImageIcon("Pics\\Free Place.png").getImage(),
++                            100 + j * blockSize, 60 + i * blockSize, blockSize, blockSize, null);
++                    g2D.drawString(environment.getBlock()[i][j].getExpense() + "", 110 + j * blockSize, 90 + i * blockSize);
++                }
++            }
++        }
++    }
++
++    /**
++     * Gets the next move of the robot, prints it on the text area and
++     * graphically displays this move on the board
++     */
++    private void getNext() {
++        if (robotPath == null) {
++            path.append("Not Possible");
++            nextButton.removeMouseListener(mouseHandler);
++        }
++        else if (robotPath.size() > 0){
++            Node nextStep = robotPath.pollFirst();
++            path.append(robot.relativeDirectionOf(nextStep) + "    ");
++            cost += robot.getExpense();
++            depth += 1;
++            for (int i = 0; i < butterPlates.size(); ++i) {
++                if (butterPlates.get(i).equals(nextStep)) {
++                    butterPlates.set(i, nextStep.getOppositeOf(robot));
++                    break;
++                }
++            }
++            robot = nextStep;
++            pathAreaCounter = (pathAreaCounter + 1) % 12;
++            if (pathAreaCounter == 0)
++                path.append("\n");
++            }
++        else {
++            costLabel.setText("Cost: " + cost);
++            depthLabel.setText("Depth: " + depth);
++        }
++        this.repaint();
++        this.revalidate();
++    }
++
++    @Override
++    public void paint(Graphics g) {
++        super.paint(g);
++        display(g);
++    }
++
++    /**
++     * Inner class handling the mouse actions on the next button
++     */
++    private class MouseHandler extends MouseAdapter {
++
++        @Override
++        public void mouseClicked(MouseEvent e) {
++            if (e.getSource().equals(nextButton))
++                getNext();
++        }
++    }
++}
