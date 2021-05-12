@@ -6,21 +6,10 @@ import java.util.LinkedList;
  */
 public class BiBFS extends Search {
 
-    /**
-     * Instantiates this class
-     * @param environment The searching environment
-     */
     public BiBFS(Environment environment) {
         super(environment);
     }
 
-    /**
-     * Searches to find all possible (optimum) paths from the given
-     * butter plate to the given goal node
-     * @param butterPlate The butter plate to start form
-     * @param goal The goal node to be reached
-     * @return An ArrayList of all the possible paths from "butterPlate" to "goal"
-     */
     @Override
     public ArrayList<Path> searchPlate(Node butterPlate, Node goal) {
 

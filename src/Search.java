@@ -1,6 +1,11 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+/**
+ * Class Search is the general searching unit that deploys its
+ * subclasses to perform a search process based on the desired
+ * algorithms
+ */
 public class Search {
 
     protected Environment environment;

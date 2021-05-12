@@ -11,6 +11,7 @@ public class AS extends Search {
         super(environment);
     }
 
+    @Override
     public ArrayList<Path> searchPlate(Node butterPlate, Node goal) {
 
 //        Resets the environment to remove all nodes' ancestors
@@ -75,6 +76,7 @@ public class AS extends Search {
         return paths;
     }
 
+    @Override
     public Path searchRobot(Node start, Node end) {
 
 //        Resets the environment to clear nodes' ancestors
@@ -137,6 +139,7 @@ public class AS extends Search {
         }
     }
 
+    @Override
     public LinkedList<Node> search() {
         return super.search();
     }

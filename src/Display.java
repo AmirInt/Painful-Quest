@@ -63,6 +63,9 @@ public class Display extends JFrame {
         this.setLayout(new BorderLayout());
         nextButton = new JLabel("NEXT");
         nextButton.addMouseListener(mouseHandler);
+        nextButton.setBorder(BorderFactory.createBevelBorder(0));
+        nextButton.setBackground(new Color(100, 30, 30));
+        nextButton.setForeground(new Color(100, 30, 30));
         depthLabel = new JLabel();
         costLabel = new JLabel();
         path = new JTextArea();
@@ -155,6 +158,8 @@ public class Display extends JFrame {
         if (robotPath == null) {
             path.append("Not Possible");
             nextButton.removeMouseListener(mouseHandler);
+            nextButton.setBackground(new Color(150, 150, 150));
+            nextButton.setForeground(new Color(150, 150, 150));
         }
         else if (robotPath.size() > 0){
             Node nextStep = robotPath.pollFirst();
