@@ -1,0 +1,83 @@
+Index: src/IDS.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.ArrayList;\r\n\r\npublic class IDS extends Search {\r\n\r\n    public IDS(Environment environment) {\r\n        super(environment);\r\n    }\r\n\r\n    private int limit = environment.getHeight() * environment.getWidth();\r\n\r\n    //This method finds the path that robot should pass to arrive the butter if exist otherwise it returns null\r\n    public Path searchRobot(Node start, Node end, int limit) {\r\n        for (int i = 0; i <= limit; i++) {\r\n            boolean goalTest = limitedDFS(start, end);\r\n            if (goalTest) {\r\n                return new Path(end);\r\n            }\r\n        }\r\n        return null;\r\n    }\r\n\r\n    //This method implements the limited version of DFS that should be called in IDS.\r\n    //If we can reach the goal in the given limited depth it returns true otherwise it returns false\r\n    private boolean limitedDFS(Node start, Node end) {\r\n        int depth = 0;\r\n        ArrayList<Node> explored = new ArrayList<>();\r\n        ArrayList<Node> fringe = new ArrayList<>();\r\n        fringe.add(start);\r\n\r\n        while (depth <= limit) {\r\n            if (fringe.isEmpty())\r\n                return false;\r\n            Node expanded = fringe.remove(fringe.size() - 1);\r\n            depth = expanded.getDepth();\r\n            if (depth == limit) {\r\n                explored.add(expanded);\r\n                continue;\r\n            }\r\n            ArrayList<Node> children = expanded.getNeighbours();\r\n            for (Node child : children\r\n            ) {\r\n                child.setAncestor(expanded);\r\n                child.setDepth(depth + 1);\r\n                if (child.equals(end))\r\n                    return true;\r\n                if (!explored.contains(child))\r\n                    fringe.add(child);\r\n            }\r\n            explored.add(expanded);\r\n        }\r\n        return false;\r\n    }\r\n\r\n    //This method finds the paths from butter to goal\r\n    public ArrayList<Path> searchButter(Node start, Node goal, int limit) {\r\n\r\n        ArrayList<Path> paths = new ArrayList<>();\r\n        ArrayList<Node> explored = new ArrayList<>();\r\n        ArrayList<Node> fringe = new ArrayList<>();\r\n        int depth = 0;\r\n        for (int i = 0; i <= limit; i++) {\r\n            fringe.add(start);\r\n            while (depth <= i) {\r\n                if (fringe.isEmpty())\r\n                    break;\r\n                Node expanded = fringe.remove(fringe.size() - 1);\r\n                while (expanded.equals(goal) && !fringe.isEmpty())\r\n                    expanded = fringe.remove(fringe.size() - 1);\r\n                if (fringe.isEmpty())\r\n                    break;\r\n                depth = expanded.getDepth();\r\n                if (depth == limit) {\r\n                    explored.add(expanded);\r\n                    continue;\r\n                }\r\n                ArrayList<Node> children = expanded.getNeighbours();\r\n                for (Node child : children\r\n                ) {\r\n                    child.setAncestor(expanded);\r\n                    child.setDepth(depth + 1);\r\n                    if (child.equals(goal)){\r\n                        Path path = new Path(goal);\r\n                        if (!paths.contains(path))\r\n                            paths.add(path);\r\n                    }\r\n                    if (!explored.contains(child))\r\n                        fringe.add(child);\r\n                }\r\n                explored.add(expanded);\r\n            }\r\n        }\r\n        return paths;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/IDS.java b/src/IDS.java
+--- a/src/IDS.java	
++++ b/src/IDS.java	
+@@ -1,4 +1,5 @@
+ import java.util.ArrayList;
++import java.util.LinkedList;
+ 
+ public class IDS extends Search {
+ 
+@@ -6,10 +7,11 @@
+         super(environment);
+     }
+ 
+-    private int limit = environment.getHeight() * environment.getWidth();
++    private final int limit = environment.getHeight() * environment.getWidth();
+ 
+     //This method finds the path that robot should pass to arrive the butter if exist otherwise it returns null
+-    public Path searchRobot(Node start, Node end, int limit) {
++    @Override
++    public Path searchRobot(Node start, Node end) {
+         for (int i = 0; i <= limit; i++) {
+             boolean goalTest = limitedDFS(start, end);
+             if (goalTest) {
+@@ -52,14 +54,15 @@
+     }
+ 
+     //This method finds the paths from butter to goal
+-    public ArrayList<Path> searchButter(Node start, Node goal, int limit) {
++    @Override
++    public ArrayList<Path> searchPlate(Node butterPlate, Node goal) {
+ 
+         ArrayList<Path> paths = new ArrayList<>();
+         ArrayList<Node> explored = new ArrayList<>();
+         ArrayList<Node> fringe = new ArrayList<>();
+         int depth = 0;
+         for (int i = 0; i <= limit; i++) {
+-            fringe.add(start);
++            fringe.add(butterPlate);
+             while (depth <= i) {
+                 if (fringe.isEmpty())
+                     break;
+@@ -91,4 +94,9 @@
+         }
+         return paths;
+     }
++
++    @Override
++    public LinkedList<Node> search() {
++        return super.search();
++    }
+ }
+Index: src/Main.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.util.Scanner;\r\n\r\npublic class Main {\r\n\r\n    public static void main(String[] args) {\r\n        Scanner scanner = new Scanner(System.in);\r\n        Environment environment = new Environment(scanner.nextInt(), scanner.nextInt(), scanner);\r\n\r\n        AS as = new AS(environment);\r\n//\r\n        BiBFS biBFS = new BiBFS(environment);\r\n\r\n        Display screen = new Display(environment);\r\n//        screen.putResults(as.search());\r\n\r\n        screen.putResults(biBFS.search());\r\n\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Main.java b/src/Main.java
+--- a/src/Main.java	
++++ b/src/Main.java	
+@@ -10,10 +10,13 @@
+ //
+         BiBFS biBFS = new BiBFS(environment);
+ 
++        IDS ids = new IDS(environment);
++
+         Display screen = new Display(environment);
+ //        screen.putResults(as.search());
+ 
+-        screen.putResults(biBFS.search());
++//        screen.putResults(biBFS.search());
+ 
++        screen.putResults(ids.search());
+     }
+ }

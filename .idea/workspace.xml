@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="5b8a4177-5885-428c-94bf-f2885c381fb6" name="Default Changelist" comment="Settin' up main" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1rCrw4XKBGXd93b7vOq3EHkcviy" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="Downloaded.Files.Path.Enabled" value="false" />
+    <property name="Repository.Attach.Annotations" value="false" />
+    <property name="Repository.Attach.JavaDocs" value="false" />
+    <property name="Repository.Attach.Sources" value="false" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Plants vs. Zombies" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+  </component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="Painful Quest" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5b8a4177-5885-428c-94bf-f2885c381fb6" name="Default Changelist" comment="" />
+      <created>1618491150775</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1618491150775</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Adding class &quot;Path&quot; and rolling &quot;BiBFS&quot; forward">
+      <created>1618764853260</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1618764853260</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Adding class &quot;Path&quot; and rolling &quot;BiBFS&quot; forward">
+      <created>1618764950090</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1618764950090</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Updating class Path">
+      <created>1618925685939</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1618925685939</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Addin' &quot;toString&quot; to classes &quot;Path&quot; and &quot;Node&quot;.&#10;Updatin' method Node.getNeighbours().&#10;BiBFS works just fine for a single goal.">
+      <created>1619351647569</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1619351647569</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Addin' &quot;reset()&quot; to class Environment.&#10;BiBFS is almost done, congrats!&#10;Starting AS class modification">
+      <created>1620056689027</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1620056689027</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Finishin' AS class, addin' class &quot;Heap&quot;, improvin' readability, updatin' &quot;Path&quot;, &quot;Node&quot; and &quot;Environment&quot;">
+      <created>1620128268569</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1620128268570</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Addin' JavaDoc">
+      <created>1620735343282</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1620735343282</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Addin' JavaDoc">
+      <created>1620805599771</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1620805599771</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Settin' up main">
+      <created>1620806205723</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1620806205723</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Adding class &quot;Path&quot; and rolling &quot;BiBFS&quot; forward" />
+    <MESSAGE value="Updating class Path" />
+    <MESSAGE value="Addin' &quot;toString&quot; to classes &quot;Path&quot; and &quot;Node&quot;.&#10;Updatin' method Node.getNeighbours().&#10;BiBFS works just fine for a single goal." />
+    <MESSAGE value="Addin' &quot;reset()&quot; to class Environment.&#10;BiBFS is almost done, congrats!&#10;Starting AS class modification" />
+    <MESSAGE value="Finishin' AS class, addin' class &quot;Heap&quot;, improvin' readability, updatin' &quot;Path&quot;, &quot;Node&quot; and &quot;Environment&quot;" />
+    <MESSAGE value="Addin' JavaDoc" />
+    <MESSAGE value="Settin' up main" />
+    <option name="LAST_COMMIT_MESSAGE" value="Settin' up main" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.util.NoSuchElementException" package="java.util" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
