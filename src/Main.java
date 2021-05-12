@@ -3,34 +3,33 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+
         Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter Input: ");
         Environment environment = new Environment(scanner.nextInt(), scanner.nextInt(), scanner);
 
-//        AS as = new AS(environment);
-
-        BiBFS biBFS = new BiBFS(environment);
-
-        IDS ids = new IDS(environment);
-
-//        Path path = ids.searchRobot(environment.getStartingNode(), environment.getBlock()[14][11]);
-//        if (path != null)
-//            while (path.isNotEmpty())
-//                System.out.print(path.pop() + "    ");
-
-//        for (Path path:
-//             ids.searchPlate(environment.getButterPlates().get(0), environment.getGoals().get(0))) {
-//            while (path.isNotEmpty())
-//                System.out.print(path.pop() + "    ");
-//            System.out.println();
-//        }
+        System.out.println("Select a search algorithm: ");
+        System.out.println("1. Iterative Deepening Search");
+        System.out.println("2. Bidirectional Breadth First Search");
+        System.out.println("3. A* Search");
 
         Display screen = new Display(environment);
 
-//        screen.putResults(as.search());
+        int option = scanner.nextInt();
 
-//        screen.putResults(biBFS.search());
-
-        screen.putResults(ids.search());
-
+        switch (option) {
+            case 1 -> {
+                IDS ids = new IDS(environment);
+                screen.putResults(ids.search());
+            }
+            case 2 -> {
+                BiBFS biBFS = new BiBFS(environment);
+                screen.putResults(biBFS.search());
+            }
+            case 3 -> {
+                AS as = new AS(environment);
+                screen.putResults(as.search());
+            }
+        }
     }
 }
